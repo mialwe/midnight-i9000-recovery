@@ -273,46 +273,6 @@ static char* categories[][8] = {
     {NULL,NULL,NULL,NULL}
   };
 
-void ext4opts_menu() {
-    static char* headers[] = {  "Ext4 Mount Options",
-                                "",
-                                NULL
-    };
-
-    static char* list[] = { "Use SAFER mount opts (Recommended)",
-                            "Use FASTER mount opts",
-                            NULL
-    };
-
-    for (;;)
-    {
-		unsigned int fastopts_enabled = 0;
-		FILE* f = fopen("/system/etc/ext4mountopts.conf","r");
-		if (f)
-			fscanf (f,"%u",&fastopts_enabled);
-		ui_print("\n\nMount options: %s\n", fastopts_enabled? "FASTER":"SAFER");
-		int chosen_item = get_menu_selection(headers, list, 0);
-		if (chosen_item == GO_BACK)
-			break;
-		switch (chosen_item)
-		{
-			case 0:
-			fastopts_enabled = 0;
-			break;
-			case 1:
-			fastopts_enabled = 1;
-			break;
-		}
-		
-		f = fopen("/system/etc/ext4mountopts.conf","w+");
-		if (f) {
-			fprintf(f,"%u\n", fastopts_enabled);
-			fclose(f);
-		} else {
-			ui_print("Could not create config file\n");
-		}
-	}
-}
 
 void lagfix_system_menu() {
     static char* headers[] = {  "Convert /system partition?",
@@ -348,118 +308,6 @@ void lagfix_system_menu() {
 			break; //go back
 		}
 	}
-}
-
-void advanced_lagfix_menu() {
-  static char* headers[] = { "Custom Filesystem Conversion Menu",
-							 "WARNING:",
-							 "Ext4 or RFS are the only safe choices",
-							 "Loops and Bind are not recommended",
-                             "", NULL };
-
-  int chosen_item = 0;
-  for (;;)
-    {
-        char* list[8];
-        FILE* f = fopen("/system/etc/lagfix.conf","r");
-        int i=0;
-        for (i=0;i<7;i++) {
-          list[i] = malloc(64);
-        }
-        list[7] = NULL;
-        if (f==NULL) {
-          LOGE("Could not open lagfix.conf!\n");
-        } else {
-          ui_print("Current configuration is:\n");
-          i=0;
-          while ((i<7) && (fgets(list[i],63,f))) {
-            ui_print(list[i]);
-            list[i][strlen(list[i])-1]='\0'; // remove trailing newline
-            i++;
-          }
-          fclose(f);
-        }
-
-        chosen_item = get_menu_selection(headers, list, 0);
-        if (chosen_item == GO_BACK)
-            break;
-
-        int category=0;
-        while (chosen_item>=catvals[category]) {
-          category++;
-        }
-
-        ui_print("%d\n",category);
-
-        int curval=0;
-        while ((categories[category][curval]) && (memcmp(list[chosen_item]+strlen(startval[chosen_item]),categories[category][curval],strlen(categories[category][curval]))!=0))
-          curval++;
-
-        ui_print("%d\n",curval);
-
-        if (categories[category][curval]) {
-          curval++;
-          if (!categories[category][curval]) {
-            curval = 0;
-          }
-        } else {
-          curval=0;
-        }
-
-        ui_print("%d\n",curval);
-
-        sprintf(list[chosen_item],"%s%s",startval[chosen_item],categories[category][curval]);
-
-        f = fopen("/system/etc/lagfix.conf","w+");
-        for (i=0; i<7; i++) {
-          fprintf(f,"%s\n",list[i]);
-        }
-        fclose(f);
-    }
-}
-
-void lagfix_menu() {
-  static char* headers[] = {  "Filesystem Conversion 'Lagfix' Menu",
-                              "DATA: /data + /dbdata + /cache",
-							  "SYSTEM: /system",
-							  "",
-                              NULL
-  };
-
-  static char* list[] = { "Disable lagfix: Convert DATA to RFS",
-                          "Enable  lagfix: Convert DATA to Ext4",
-						  "Convert SYSTEM to Ext4 / RFS",
-                          "Advanced custom conversion options",
-						  "Ext4 mount options",
-                          NULL
-    };
-
-    for (;;)
-    {
-        FILE* f = fopen("/system/etc/lagfix.conf","r");
-        if (f==NULL) {
-          LOGE("Could not open lagfix.conf!");
-        } else {
-          char buf[64];
-          ui_print("\n\nCurrent configuration is:\n");
-          while (fgets(buf,63,f)) {
-            ui_print(buf);
-          }
-          fclose(f);
-        }
-
-        int chosen_item = get_menu_selection(headers, list, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-          case 0:f = fopen("/system/etc/lagfix.conf","w+");fprintf(f,"DATA_FS=rfs\nCACHE_FS=rfs\nDBDATA_FS=rfs\nDATA_LOOP=false\nCACHE_LOOP=false\nDBDATA_LOOP=false\nBIND_DATA_TO_DBDATA=false\n");fclose(f);ui_print("\nConversion will be done on next boot.\n");break;
-		  case 1:f = fopen("/system/etc/lagfix.conf","w+");fprintf(f,"DATA_FS=ext4\nCACHE_FS=ext4nj\nDBDATA_FS=ext4\nDATA_LOOP=false\nCACHE_LOOP=false\nDBDATA_LOOP=false\nBIND_DATA_TO_DBDATA=false\n");fclose(f);ui_print("\nConversion will be done on next boot.\n");break;
-   		  case 2:lagfix_system_menu(); break;
-		  case 3:advanced_lagfix_menu(); break;
-		  case 4:ext4opts_menu(); break;
-        }
-    }
 }
 
 int searchfor_in_config_file(const char* searchfor, int category) {
@@ -910,47 +758,42 @@ int lagfixer_main(int argc, char** argv) {
   return 0;
 }
 
-void tweak_menu() {
-    static char* headers[] = {  "Configure optional features",
-								"(R) Recommended; (O) Optional",
-                                "",
-                                NULL
-    };
+//**********************************************************************
 
-    static char* list[] = { "Toggle CIFS support (O)",
-							"Toggle IPv6 privacy (O)",
-							"Toggle Android Logger (NOT RECOMMENDED)",
-							"Toggle color mode COLD (O)",
-							"Toggle color mode WARM (O)",
-							"Toggle sdcard read_ahead 2048kB (O)",
-                            NULL
-    };
-
-    const int numtweaks = 6;
-    static char* options[] = { "CIFS","IPV6PRIVACY","ANDROIDLOGGER","COLD","WARM", "READAHEAD" };
-
+void custom_menu(
+    const char* headers[],
+    const char* list[],
+    const int numtweaks,
+    const char* options[],
+    const char* conffile,
+    int onlyone
+    ) {
     int tweaks[numtweaks];
     int i;
     char buf[128];
     for (;;)
     {
-        for (i=0;i<numtweaks;i++) tweaks[i]=0;
-        FILE* f = fopen("/system/etc/tweaks.conf","r");
+        for (i=0;i<numtweaks;i++) tweaks[i]=0;          // set all tweaks disabled
+        FILE* f = fopen(conffile,"r");                  // open configfile
         ui_print("\n\nEnabled options:\n");
         if (f) {
-          while (fgets(buf,127,f)) {
+          while (fgets(buf,127,f)) {                    // read all enabled options
             ui_print(buf);
-            for (i=0; i<numtweaks; i++) {
-              if (memcmp(buf,options[i],strlen(options[i]))==0) tweaks[i]=1;
+            if (onlyone!=1){                            // only if multiple options possible:
+                for (i=0; i<numtweaks; i++) {           // enable options in tweaks array
+                    if (memcmp(buf,options[i],strlen(options[i]))==0) tweaks[i]=1;
+                }
             }
           }
           fclose(f);
-        }
+        }                                               // done
+        
+        // start menu
         int chosen_item = get_menu_selection(headers, list, 0);
         if (chosen_item == GO_BACK)
             break;
-        tweaks[chosen_item] = tweaks[chosen_item]?0:1;
-        f = fopen("/system/etc/tweaks.conf","w+");
+        tweaks[chosen_item] = tweaks[chosen_item]?0:1;  // toggle selected option
+        f = fopen(conffile,"w+");                       // write options to config file
         if (f) {
           for (i=0; i<numtweaks; i++) {
             if (tweaks[i]) fprintf(f,"%s\n",options[i]);
@@ -960,52 +803,359 @@ void tweak_menu() {
           ui_print("Could not create config file\n");
         }
     }
-
 }
 
-void bln_menu() {
-    static char* headers[] = {  "BackLightNotification Menu",
+void lmk_menu() {
+    const char* h[]={   
+        "CONFIGURE LOWMEMORYKILLER VALUES",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "Default",
+        "Level 1",
+		"Level 2",
+		"Level 3",
+		"Level 4",
+        NULL};
+    int num=5;
+    const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4" };
+    const char* cnff="/system/etc/midnight_lmk.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void modules_menu() {
+    const char* h[]={   
+        "CONFIGURE MISC./MODULE LOADING",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "Toggle CIFS module loading (filesystem)",
+		"Toggle LOGGER module loading (logcat)",
+        "Toggle IPv6 privacy (security)",
+        NULL};
+    int num=3;
+    const char* cnfv[]={"CIFS","ANDROIDLOGGER","IPV6PRIVACY" };
+    const char* cnff="/system/etc/midnight_misc.conf";
+    custom_menu(h,m,num,cnfv,cnff,0);
+}
+
+void gfx_menu() {
+    const char* h[]={   
+        "CONFIGURE GFX OPTIONS",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "Enable color mode MIDNIGHT",
+        "Enable color mode COLD",
+        "Enable color mode WARM",
+        NULL};
+    int num=2;
+    const char* cnfv[]={"MIDNIGHT","COLD","WARM"};
+    const char* cnff="/system/etc/midnight_gfx.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void readahead_menu() {
+    const char* h[]={   
+        "SELECT SDCARD READ_AHEAD VALUE",
+        "Default=512kB, higher values may result",
+        "in faster sdcard read actions.",
+        NULL};
+    const char* m[]={   
+        "512kB",
+        "1024kB",
+        "2048kB",
+        "3064kB",
+        "4096kB",
+        NULL};
+    int num=5;
+    const char* cnfv[]={"READAHEAD_512","READAHEAD_1024","READAHEAD_2048","READAHEAD_3064","READAHEAD_4096"};
+    const char* cnff="/system/etc/midnight_rh.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void cleanup_menu() {
+    static char* headers[] = {  "MISC. CLEANUP OPTIONS",
+                                "Remove unneeded/unwanted files...",
                                 "",
                                 NULL
     };
-
-    static char* list[] = { "Turn BLN On",
-                            "Turn BLN Off",
+    static char* list[] = { "Remove ALL custom bootanimations",
+                            "/system: remove ALL /etc/init.d initscripts",
+                            "/system: remove ALL startup/shutdown sounds",
+                            "/data  : remove local.prop",
+                            "/system: delete VoltageControl initscript",
+                            "/system: delete ALL Midnight conf files",
                             NULL
     };
-
     for (;;)
     {
-	unsigned int bln_enabled = 0;
-	FILE* f = fopen("/system/etc/bln.conf","r");
-	if (f)
-	    fscanf (f,"%u",&bln_enabled);
-	ui_print("\n\nBLN is now: %s\n", bln_enabled? "enabled":"disabled");
-	int chosen_item = get_menu_selection(headers, list, 0);
-	if (chosen_item == GO_BACK)
-	    break;
-	switch (chosen_item)
-	{
-	    case 0:
-		bln_enabled = 1;
-		break;
-	    case 1:
-		bln_enabled = 0;
-		break;
-	}
-	
-	f = fopen("/system/etc/bln.conf","w+");
-	if (f) {
-	    fprintf(f,"%u\n", bln_enabled);
-	    fclose(f);
-	} else {
-	    ui_print("Could not create config file\n");
-	}
-	}
+        int chosen_item = get_menu_selection(headers, list, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+              case 0:
+              {
+                if (confirm_selection("Confirm removing custom bootanimations","Yes - remove custom bootanimations")) {  
+                  ensure_root_path_mounted("SYSTEM:");
+                  ensure_root_path_mounted("DATA:");
+                  ui_print("Removing bootanimations...\n");
+                  __system("rm -f /data/local/bootanimation.zip");                
+                  __system("rm -f /data/local/sanim.zip");                
+                  __system("rm -f /data/local/bootanimation.bin");                
+                  __system("rm -f /system/media/bootanimation.zip");                
+                  __system("rm -f /system/media/sanim.zip");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+              case 1:
+              {
+                if (confirm_selection("Confirm cleaning /system/etc/init.d","Yes - clean init.d")) {  
+                  ensure_root_path_mounted("SYSTEM:");
+                  ui_print("Cleaning /system/etc/init.d...\n");
+                  __system("rm -rf /system/etc/init.d/*");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+              case 2:
+              {
+                if (confirm_selection("Confirm removing start/shutdown sounds","Yes - remove start/shutdown sounds")) {  
+                  ensure_root_path_mounted("SYSTEM:");
+                  ensure_root_path_mounted("DATA:");
+                  ui_print("Creating backup files in /data/local...\n");
+                  __system("cp /system/etc/PowerOn.snd /data/local");                
+                  __system("cp /system/etc/PowerOn.wav /data/local");                
+                  __system("cp /system/media/audio/ui/shutdown.ogg /data/local");                
+                  ui_print("Removing startup/shutdown sounds...\n");
+                  __system("rm -f /system/etc/PowerOn.snd");                
+                  __system("rm -f /system/etc/PowerOn.wav");                
+                  __system("rm -f /system/media/audio/ui/shutdown.ogg");                
+                  ui_print("Done.\n");
+                }
+                break;
+              } 
+              case 3:
+              {
+                if (confirm_selection("Confirm deleting /data/local.prop","Yes - delete /data/local.prop")) {  
+                  ensure_root_path_mounted("DATA:");
+                  ui_print("Cleaning /data/local.prop...\n");
+                  __system("rm -rf /data/local.prop");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+              case 4:
+              {
+                if (confirm_selection("Confirm deleting init.d/S_volt_scheduler","Yes - delete init.d/S_volt_scheduler")) {  
+                  ensure_root_path_mounted("SYSTEM:");
+                  ui_print("Cleaning /system/etc/init.d/S_volt_scheduler...\n");
+                  __system("rm -rf /system/etc/init.d/S_volt_scheduler");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+              case 5:
+              {
+                if (confirm_selection("Confirm deleting Midnight conf files","Yes - delete ALL kernel conf files")) {  
+                  ensure_root_path_mounted("SYSTEM:");
+                  ui_print("Cleaning /system/etc/midnight_*.conf\n");
+                  __system("rm -rf /system/etc/midnight_*.conf");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+
+        }
+    }
+
 }
 
+
+void touch_menu() {
+    const char* h[]={   
+        "SELECT TOUCHSCREEN SENSITIVITY",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "Stock values",
+        "Sensitivity +",
+        "Sensitivity ++",
+        "Sensitivity +++",
+        NULL};
+    int num=4;
+    const char* cnfv[]={"TOUCH_DEFAULT","TOUCH_PLUS1","TOUCH_PLUS2","TOUCH_PLUS3"};
+    const char* cnff="/system/etc/midnight_touch.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void cpu_max_menu() {
+    const char* h[]={   
+        "SELECT CPU MAX FREQUENCY",
+        "Limit your CPU frequency to preserve",
+        "battery life...",
+        NULL};
+    const char* m[]={   
+        "400Mhz (throtteled 1Ghz)",
+        "800Mhz (throtteled 1Ghz)",
+        "1000Mhz (default)",
+        "1200Mhz",
+        NULL};
+    int num=4;
+    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200"};
+    const char* cnff="/system/etc/midnight_cpu_max.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void cpu_gov_menu() {
+    const char* h[]={   
+        "SELECT CPU GOVERNOR",
+        "Change CPU frequency scaling method...",
+        "",
+        NULL};
+    const char* m[]={   
+        "CONSERVATIVE -> tweaked, less battery",
+        "ONDEMAND     -> more responsive/battery",
+        NULL};
+    int num=2;
+    const char* cnfv[]={"CPU_GOV_CONSERVATIVE","CPU_GOV_ONDEMAND"};
+    const char* cnff="/system/etc/midnight_cpu_gov.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void IO_sched_menu() {
+    const char* h[]={   
+        "SELECT IO SCHEDULER",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "NOOP",
+        "VR",
+        "CFQ",
+        "DEADLINE",
+        NULL};
+    int num=4;
+    const char* cnfv[]={"IO_SCHED_NOOP","IO_SCHED_VR","IO_SCHED_CFQ","IO_SCHED_DEADLINE"};
+    const char* cnff="/system/etc/midnight_io_sched.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void cpu_uv_menu() {
+    const char* h[]={   
+        "SELECT CPU UNDERVOLTING VALUES",
+        "Lower values can save battery, too low",
+        "values can cause system instability...",
+        NULL};
+    const char* m[]={   
+        "UV (-mV):  0 /  0 /   0 /   0 /   0",
+        "UV (-mV):  0 /  0 /  25 /  25 /  50",
+        "UV (-mV):  0 / 25 /  25 /  50 /  50",
+        "UV (-mV):  0 / 25 /  25 /  50 / 100",
+        "UV (-mV):  0 / 25 /  50 / 100 / 100",
+        "UV (-mV):  0 / 25 /  75 / 100 / 125",
+        "UV (-mV):  0 / 25 /  50 / 100 / 125",
+        "UV (-mV):  0 / 25 /  50 / 125 / 125",
+        "UV (-mV):  0 / 25 / 100 / 125 / 150",
+        "UV (-mV):  0 / 50 / 100 / 125 / 150",
+        "UV (-mV): 25 / 50 /  50 / 100 / 125",
+        "UV (-mV): 25 / 50 /  75 / 125 / 150",
+        NULL};
+    int num=11;
+    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11"};
+    const char* cnff="/system/etc/midnight_cpu_uv.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void cpu_menu() {
+    static char* headers[] = {  "CPU / UV OPTIONS",
+                                "Configure CPU max. frequency, governor and",
+                                "customize undervolting values for better "
+                                "battery life and device temperature...",
+                                NULL
+    };
+    static char* list[] = { "Select max. CPU frequency",
+                            "Select CPU governor",
+                            "Select CPU undervolting values",
+                            NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+              case 0:
+              {
+                cpu_max_menu();
+                break;
+              }
+              case 1:
+              {
+                cpu_gov_menu();
+                break;
+              }
+              case 2:
+              {
+                cpu_uv_menu();
+                break;
+              }
+        }
+    }
+}
+
+void filesystem_menu() {
+    static char* headers[] = {  "FILESYSTEM OPTIONS",
+                                "Convert or defragment filesystems...",
+                                NULL
+    };
+    static char* list[] = { "Convert /DATA, /DBDATA, /CACHE -> RFS",
+                            "Convert /DATA, /DBDATA, /CACHE -> EXT4",
+                            "Convert /SYSTEM -> RFS/EXT4",
+                            "Select IO scheduler",
+                            NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+              case 0:
+              {
+				convertfs_rfs_menu();
+                break;
+              }
+              case 1:
+              {
+			    convertfs_ext4_menu();
+                break;
+              }
+			  case 2:
+              {
+			    lagfix_system_menu();
+                break;
+              }
+			  case 3:
+              {
+			    IO_sched_menu();
+                break;
+              }
+        }
+    }
+}
+
+//**********************************************************************
 void convertfs_ext4_menu() {
-    static char* headers[] = {  "Convert filesystems to EXT4?",
+    static char* headers[] = {  "CONVERT FILESYSTEM TO EXT4?",
 								"If fs is already EXT4, it will be unfragmented.",
 								"",
 								"/data /dbdata and /cache will be converted",
@@ -1083,7 +1233,7 @@ void convertfs_ext4_menu() {
 }
 
 void convertfs_rfs_menu() {
-    static char* headers[] = {  "Convert filesystems to RFS?",
+    static char* headers[] = {  "CONVERT FILESYSTEM TO RFS?",
 								"If fs is already RFS, it will be unfragmented.",
 								"",
 								"/data /dbdata and /cache will be converted",
@@ -1154,14 +1304,16 @@ void convertfs_rfs_menu() {
 }
 
 void apply_root_menu() {
-    static char* headers[] = {  "Install superuser",
-                                "",
+    static char* headers[] = {  "INSTALL ROOT",
+                                "busybox and su will be installed to",
+                                "/system, be sure to have enough free",
+                                "space on /system partition...",
                                 NULL
     };
 
-    static char* list[] = { "Simple: install busybox+su",
-                            "Adv: also rm some toolbox cmds",
-                            "Ext: also rm most toolbox cmds",
+    static char* list[] = { "Install ROOT (busybox+su)",
+                            "Install ROOT and remove some toolbox cmds",
+                            "Install ROOT and remove most toolbox cmds",
                             NULL
     };
 
@@ -1173,17 +1325,17 @@ void apply_root_menu() {
         switch (chosen_item)
         {
             case 0:
-              if (confirm_selection("Confirm root","Yes - apply root to device")) {
+              if (confirm_selection("Confirm ROOT","Yes - apply ROOT to device")) {
                 apply_root_to_device(0);
               }
               break;
             case 1:
-              if (confirm_selection("Confirm root","Yes - apply root to device")) {
+              if (confirm_selection("Confirm ROOT","Yes - apply ROOT to device")) {
                 apply_root_to_device(1);
               }
               break;
             case 2:
-              if (confirm_selection("Confirm root","Yes - apply root to device")) {
+              if (confirm_selection("Confirm ROOT","Yes - apply ROOT to device")) {
                 apply_root_to_device(2);
               }
               break;
@@ -1194,22 +1346,25 @@ void apply_root_menu() {
 
 
 void show_advanced_lfs_menu() {
-    static char* headers[] = {  "SpeedMod/Midnight Advanced Menu",
+    static char* headers[] = {  "ADVANCED OPTIONS MENU",
+                                "",
                                 "",
                                 NULL
     };
 
     static char* list[] = { "Reboot into Recovery",
                             "Reboot into Download",
-                            "Switch to Recovery 3e",
-                            "ROOT / Install Superuser",
-                            "Convert filesystems to RFS",
-							"Convert filesystems to EXT4",
-							"Convert SYSTEM filesystem",
-                            "Configure optional features",
-                            "Clean init.d/ completely",
-                            "Delete custom bootanimations",
-                            "Delete start/shutdown sounds for rooting",
+                            "Shutdown",
+                            "Switch to Recovery3e",
+                            "Install ROOT/Superuser",
+                            "Filesystem conversion",
+                            "Configure misc./modules",
+                            "Configure GFX options",
+                            "Configure READ_AHEAD value",
+                            "Configure LMK values",
+                            "Configure CPU/UV settings",
+                            "Configure touchscreen sensitivity",
+                            "Cleanup options",
                             NULL
     };
 
@@ -1237,7 +1392,10 @@ void show_advanced_lfs_menu() {
               case 1:
                   __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, "download");
                   break;
-              case 2: {
+              case 2:
+                  __reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_POWER_OFF, NULL);
+                  break;
+              case 3: {
                   gr_exit();
                   ev_exit();
                   ensure_root_path_mounted("SYSTEM:");
@@ -1250,88 +1408,51 @@ void show_advanced_lfs_menu() {
                   ui_print("Back from rec3e");
               }
                   break;
-              case 3:
+              case 4:
               {
                 apply_root_menu();
                 break;
               }
-              case 4:
-              {
-				convertfs_rfs_menu();
-                //lagfix_menu(); //Gingerbread kernel temporary disable
-                break;
-              }
               case 5:
               {
-			    convertfs_ext4_menu();
-                //tweak_menu(); //Gingerbread kernel temporary disable
+                filesystem_menu();
                 break;
               }
-			  case 6:
+              case 6:
               {
-			    lagfix_system_menu();
+                modules_menu();
                 break;
               }
               case 7:
               {
-                tweak_menu();
+                gfx_menu();  
                 break;
               }
               case 8:
               {
-                if (confirm_selection("Confirm cleaning /system/etc/init.d","Yes - clean init.d")) {  
-                  ensure_root_path_mounted("SYSTEM:");
-                  ui_print("Cleaning /system/etc/init.d...\n");
-                  __system("rm -rf /system/etc/init.d/*");                
-                  ui_print("Done.\n");
-                }
+                readahead_menu();  
                 break;
               }
               case 9:
               {
-                if (confirm_selection("Confirm removing custom bootanimations","Yes - remove custom bootanimations")) {  
-                  ensure_root_path_mounted("SYSTEM:");
-                  ensure_root_path_mounted("DATA:");
-                  ui_print("Removing...\n");
-                  __system("rm -f /data/local/bootanimation.zip");                
-                  __system("rm -f /data/local/sanim.zip");                
-                  __system("rm -f /data/local/bootanimation.bin");                
-                  __system("rm -f /system/media/bootanimation.zip");                
-                  __system("rm -f /system/media/sanim.zip");                
-                  ui_print("Done.\n");
-                }
+                lmk_menu(); 
                 break;
               }
               case 10:
               {
-                if (confirm_selection("Confirm removing start/shutdown sounds","Yes - remove start/shutdown sounds")) {  
-                  ensure_root_path_mounted("SYSTEM:");
-                  ensure_root_path_mounted("DATA:");
-                  ui_print("Removing...\n");
-                  __system("cp /system/etc/PowerOn.snd /data/local");                
-                  __system("cp /system/etc/PowerOn.wav /data/local");                
-                  __system("cp /system/media/audio/ui/shutdown.ogg /data/local");                
-                  __system("rm -f /system/etc/PowerOn.snd");                
-                  __system("rm -f /system/etc/PowerOn.wav");                
-                  __system("rm -f /system/media/audio/ui/shutdown.ogg");                
-                  ui_print("Done.\n");
-                }
+                cpu_menu(); 
                 break;
               }
-              /*case 7:
+              case 11:
               {
-                (if (confirm_selection("Confirm setting permissions","Yes - run fix_permissions_sgs")) {
-                  ensure_root_path_mounted("SYSTEM:");
-                  ensure_root_path_mounted("DATA:");
-                  ensure_root_path_mounted("DATADATA:");
-                  ensure_root_path_mounted("CACHE:");
-                  ui_print("Starting fixing\n");
-                  __systemscript("/sbin/fix_permissions_sgs");
-                  ui_print("Done\n");
-                } //Gingerbread kernel temporary disable
-				break;
-              }*/
+                touch_menu(); 
+                break;
+              }
+              case 12:
+              {
+                cleanup_menu(); 
+                break;
+              }
           }
       }
-    //}
 }
