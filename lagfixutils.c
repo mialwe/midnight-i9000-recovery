@@ -812,14 +812,16 @@ void lmk_menu() {
         "",
         NULL};
     const char* m[]={   
-        "Default",
-        "Level 1",
-		"Level 2",
-		"Level 3",
-		"Level 4",
+        "Preset 0: 8,16,24,55,60,80 (MIDNIGHT)",
+        "PRESET 1: 8,12,16,24,28,32 (NEXUS S)",
+		"PRESET 2: 8,16,24,28,36,42",
+		"PRESET 3: 8,16,24,36,48,56",
+		"PRESET 4: 8,16,24,42,56,68",
+        "PRESET 5: 8,16,24,56,68,88",
+        "PRESET 6: 8,16,24,62,74,96",
         NULL};
-    int num=5;
-    const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4" };
+    int num=7;
+    const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4","LMK5","LMK6" };
     const char* cnff="/system/etc/midnight_lmk.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
@@ -1357,7 +1359,7 @@ void show_advanced_lfs_menu() {
                             "Shutdown",
                             "Switch to Recovery3e",
                             "Install ROOT/Superuser",
-                            "Filesystem conversion",
+                            "Configure filesystems and IO scheduler",
                             "Configure misc./modules",
                             "Configure GFX options",
                             "Configure READ_AHEAD value",
