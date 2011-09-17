@@ -648,36 +648,6 @@ int do_lagfixsys(int do_fr) {
 		ui_print("\nStep 1: Backup partitions...\nThis may take a while...\n");
 		__system("tar cvf /sdcard/system-backup.tar /system");		
 		
-		/*
-		char backup_path[PATH_MAX];
-		nandroid_generate_timestamp_path(backup_path);
-		int backup_ok = 1; //detect if backup was ok
-		ui_print("Creating a nandroid backup at %s\n",backup_path);
-		
-		ui_set_background(BACKGROUND_ICON_INSTALLING);
-		
-		if (ensure_root_path_mounted("SDCARD:") != 0)
-			return print_and_error("Can't mount /mnt/sdcard\n");
-		
-		char tmp[PATH_MAX];
-		sprintf(tmp, "mkdir -p %s", backup_path);
-		__system(tmp);
-
-		if (0 != (nandroid_backup_partition(backup_path, "SYSTEM:")))
-		  backup_ok = 0;
-
-		if (backup_ok==0) { //backup failed
-			ui_print("Backup failed!\nYou may need more free space on int SD\nAborting\n");
-			return -1; //abort
-		}
-
-		ui_print("Generating md5 sum...\n");
-		sprintf(tmp, "nandroid-md5.sh %s", backup_path);
-		if (0 != (__systemscript(tmp))) {
-			ui_print("Error while generating md5 sum!\n");
-			return -1;
-		}
-		*/
 		char tmp[PATH_MAX];
 		
 		ui_print("Unmounting /system\n");
@@ -867,7 +837,7 @@ void readahead_menu() {
         "in faster sdcard read actions.",
         NULL};
     const char* m[]={   
-        "512kB",
+        "512kB [default]",
         "1024kB",
         "2048kB",
         "3064kB",
@@ -986,7 +956,7 @@ void touch_menu() {
         "",
         NULL};
     const char* m[]={   
-        "Stock values",
+        "Stock values [default]",
         "Sensitivity +",
         "Sensitivity ++",
         "Sensitivity +++",
@@ -1006,7 +976,7 @@ void cpu_max_menu() {
     const char* m[]={   
         "400Mhz (throtteled 1Ghz)",
         "800Mhz (throtteled 1Ghz)",
-        "1000Mhz (default)",
+        "1000Mhz [default]",
         "1200Mhz",
         NULL};
     int num=4;
@@ -1038,7 +1008,7 @@ void IO_sched_menu() {
         "",
         NULL};
     const char* m[]={   
-        "NOOP",
+        "NOOP [default]",
         "VR",
         "CFQ",
         "DEADLINE",
@@ -1056,7 +1026,7 @@ void cpu_uv_menu() {
         "values can cause system instability...",
         NULL};
     const char* m[]={   
-        "UV (-mV):  0 /  0 /   0 /   0 /   0",
+        "UV (-mV):  0 /  0 /   0 /   0 /   0 [default]",
         "UV (-mV):  0 /  0 /  25 /  25 /  50",
         "UV (-mV):  0 / 25 /  25 /  50 /  50",
         "UV (-mV):  0 / 25 /  25 /  50 / 100",
@@ -1069,7 +1039,7 @@ void cpu_uv_menu() {
         "UV (-mV): 25 / 50 /  50 / 100 / 125",
         "UV (-mV): 25 / 50 /  75 / 125 / 150",
         NULL};
-    int num=11;
+    int num=12;
     const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11"};
     const char* cnff="/system/etc/midnight_cpu_uv.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
