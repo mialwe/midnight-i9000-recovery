@@ -820,7 +820,7 @@ void gfx_menu() {
         "",
         NULL};
     const char* m[]={   
-        "Enable color mode MIDNIGHT",
+        "Enable color mode MIDNIGHT [default]",
         "Enable color mode COLD",
         "Enable color mode WARM",
         NULL};
@@ -992,8 +992,8 @@ void cpu_gov_menu() {
         "",
         NULL};
     const char* m[]={   
-        "CONSERVATIVE -> tweaked, less battery",
-        "ONDEMAND     -> more responsive/battery",
+        "CONSERVATIVE -> less battery [default]",
+        "ONDEMAND     -> more responsive",
         NULL};
     int num=2;
     const char* cnfv[]={"CPU_GOV_CONSERVATIVE","CPU_GOV_ONDEMAND"};
@@ -1026,18 +1026,18 @@ void cpu_uv_menu() {
         "values can cause system instability...",
         NULL};
     const char* m[]={   
-        "UV (-mV):  0 /  0 /   0 /   0 /   0 [default]",
-        "UV (-mV):  0 /  0 /  25 /  25 /  50",
-        "UV (-mV):  0 / 25 /  25 /  50 /  50",
-        "UV (-mV):  0 / 25 /  25 /  50 / 100",
-        "UV (-mV):  0 / 25 /  50 / 100 / 100",
-        "UV (-mV):  0 / 25 /  75 / 100 / 125",
-        "UV (-mV):  0 / 25 /  50 / 100 / 125",
-        "UV (-mV):  0 / 25 /  50 / 125 / 125",
-        "UV (-mV):  0 / 25 / 100 / 125 / 150",
-        "UV (-mV):  0 / 50 / 100 / 125 / 150",
-        "UV (-mV): 25 / 50 /  50 / 100 / 125",
-        "UV (-mV): 25 / 50 /  75 / 125 / 150",
+        "0 -mV:  0 /  0 /   0 /   0 /   0 [default]",
+        "1 -mV:  0 /  0 /  25 /  25 /  50",
+        "2 -mV:  0 / 25 /  25 /  50 /  50",
+        "3 -mV:  0 / 25 /  25 /  50 / 100",
+        "4 -mV:  0 / 25 /  50 / 100 / 100",
+        "5 -mV:  0 / 25 /  75 / 100 / 125",
+        "6 -mV:  0 / 25 /  50 / 100 / 125",
+        "7 -mV:  0 / 25 /  50 / 125 / 125",
+        "8 -mV:  0 / 25 / 100 / 125 / 150",
+        "9 -mV:  0 / 50 / 100 / 125 / 150",
+        "10 -mV: 25 / 50 /  50 / 100 / 125",
+        "11 -mV: 25 / 50 /  75 / 125 / 150",
         NULL};
     int num=12;
     const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11"};
