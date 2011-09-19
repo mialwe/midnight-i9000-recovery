@@ -782,13 +782,13 @@ void lmk_menu() {
         "",
         NULL};
     const char* m[]={   
-        "Preset 0: 8,16,24,55,60,80 (MIDNIGHT)",
-        "PRESET 1: 8,12,16,24,28,32 (NEXUS S)",
-		"PRESET 2: 8,16,24,28,36,42",
-		"PRESET 3: 8,16,24,36,48,56",
-		"PRESET 4: 8,16,24,42,56,68",
-        "PRESET 5: 8,16,24,56,68,88",
-        "PRESET 6: 8,16,24,62,74,96",
+        "[0] 8,16,24,55,60,80Mb (MIDNIGHT)",
+        "[1] 8,12,16,24,28,32Mb (NEXUS S)",
+		"[2] 8,16,24,28,36,42Mb",
+		"[3] 8,16,24,36,48,56Mb",
+		"[4] 8,16,24,42,56,68Mb",
+        "[5] 8,16,24,56,68,88Mb",
+        "[6] 8,16,24,62,74,96Mb",
         NULL};
     int num=7;
     const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4","LMK5","LMK6" };
@@ -806,9 +806,10 @@ void modules_menu() {
         "Toggle CIFS module loading (filesystem)",
 		"Toggle LOGGER module loading (logcat)",
         "Toggle IPv6 privacy (security)",
+        "Toggle init.d support",
         NULL};
-    int num=3;
-    const char* cnfv[]={"CIFS","ANDROIDLOGGER","IPV6PRIVACY" };
+    int num=4;
+    const char* cnfv[]={"CIFS","ANDROIDLOGGER","IPV6PRIVACY", "INIT_D" };
     const char* cnff="/system/etc/midnight_misc.conf";
     custom_menu(h,m,num,cnfv,cnff,0);
 }
@@ -837,11 +838,11 @@ void readahead_menu() {
         "in faster sdcard read actions.",
         NULL};
     const char* m[]={   
-        "512kB [default]",
-        "1024kB",
-        "2048kB",
-        "3064kB",
-        "4096kB",
+        "[0] 512kB [default]",
+        "[1] 1024kB",
+        "[2] 2048kB",
+        "[3] 3064kB",
+        "[4] 4096kB",
         NULL};
     int num=5;
     const char* cnfv[]={"READAHEAD_512","READAHEAD_1024","READAHEAD_2048","READAHEAD_3064","READAHEAD_4096"};
@@ -1019,25 +1020,97 @@ void IO_sched_menu() {
     custom_menu(h,m,num,cnfv,cnff,1);
 }
 
+void cpu_uv_freq_menu(int freq) {
+    int num=13;
+    const char* m[]={   
+        " 0 [default]",
+        " 5",
+        "10",
+        "20",
+        "30",
+        "40",
+        "50",
+        "60",
+        "70",
+        "80",
+        "90",
+        "100",
+        "don't override PRESET value",        
+        NULL};
+
+    if (freq == 100){
+        const char* h[]={   
+            "100MHZ: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnfv[]={"CPU_UV_100_0","CPU_UV_100_5","CPU_UV_100_10","CPU_UV_100_20","CPU_UV_100_30","CPU_UV_100_40","CPU_UV_100_50","CPU_UV_100_60","CPU_UV_100_70","CPU_UV_100_80","CPU_UV_100_90","CPU_UV_100_100","CPU_UV_100_NOOVERRIDE"};
+        const char* cnff="/system/etc/midnight_cpu_uv_100.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (freq == 200){
+        const char* h[]={   
+            "200MHZ: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnfv[]={"CPU_UV_200_0","CPU_UV_200_5","CPU_UV_200_10","CPU_UV_200_20","CPU_UV_200_30","CPU_UV_200_40","CPU_UV_200_50","CPU_UV_200_60","CPU_UV_200_70","CPU_UV_200_80","CPU_UV_200_90","CPU_UV_200_100","CPU_UV_200_NOOVERRIDE"};
+        const char* cnff="/system/etc/midnight_cpu_uv_200.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (freq == 400){
+        const char* h[]={   
+            "400MHZ: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnfv[]={"CPU_UV_400_0","CPU_UV_400_5","CPU_UV_400_10","CPU_UV_400_20","CPU_UV_400_30","CPU_UV_400_40","CPU_UV_400_50","CPU_UV_400_60","CPU_UV_400_70","CPU_UV_400_80","CPU_UV_400_90","CPU_UV_400_100","CPU_UV_400_NOOVERRIDE"};
+        const char* cnff="/system/etc/midnight_cpu_uv_400.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (freq == 800){
+        const char* h[]={   
+            "800MHZ: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnfv[]={"CPU_UV_800_0","CPU_UV_800_5","CPU_UV_800_10","CPU_UV_800_20","CPU_UV_800_30","CPU_UV_800_40","CPU_UV_800_50","CPU_UV_800_60","CPU_UV_800_70","CPU_UV_800_80","CPU_UV_800_90","CPU_UV_800_100","CPU_UV_800_NOOVERRIDE"};
+        const char* cnff="/system/etc/midnight_cpu_uv_800.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (freq == 1000){
+        const char* h[]={   
+            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnfv[]={"CPU_UV_MAXMHZ_0","CPU_UV_MAXMHZ_5","CPU_UV_MAXMHZ_10","CPU_UV_MAXMHZ_20","CPU_UV_MAXMHZ_30","CPU_UV_MAXMHZ_40","CPU_UV_MAXMHZ_50","CPU_UV_MAXMHZ_60","CPU_UV_MAXMHZ_70","CPU_UV_MAXMHZ_80","CPU_UV_MAXMHZ_90","CPU_UV_MAXMHZ_100","CPU_UV_MAXMHZ_NOOVERRIDE"};
+        const char* cnff="/system/etc/midnight_cpu_uv_maxmhz.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+}
+
+
 void cpu_uv_menu() {
     const char* h[]={   
-        "SELECT CPU UNDERVOLTING VALUES",
+        "SELECT CPU UNDERVOLTING mV VALUES",
         "Lower values can save battery, too low",
         "values can cause system instability...",
+        "MANUAL SETTINGS OVERRIDE PRESETS.",
         NULL};
     const char* m[]={   
-        "0 -mV:  0 /  0 /   0 /   0 /   0 [default]",
-        "1 -mV:  0 /  0 /  25 /  25 /  50",
-        "2 -mV:  0 / 25 /  25 /  50 /  50",
-        "3 -mV:  0 / 25 /  25 /  50 / 100",
-        "4 -mV:  0 / 25 /  50 / 100 / 100",
-        "5 -mV:  0 / 25 /  75 / 100 / 125",
-        "6 -mV:  0 / 25 /  50 / 100 / 125",
-        "7 -mV:  0 / 25 /  50 / 125 / 125",
-        "8 -mV:  0 / 25 / 100 / 125 / 150",
-        "9 -mV:  0 / 50 / 100 / 125 / 150",
-        "10 -mV: 25 / 50 /  50 / 100 / 125",
-        "11 -mV: 25 / 50 /  75 / 125 / 150",
+        "[ 0]  0 /  0 /   0 /   0 /   0 [default]",
+        "[ 1]  0 /  0 /  25 /  25 /  50",
+        "[ 2]  0 / 25 /  25 /  50 /  50",
+        "[ 3]  0 / 25 /  25 /  50 / 100",
+        "[ 4]  0 / 25 /  50 / 100 / 100",
+        "[ 5]  0 / 25 /  75 / 100 / 125",
+        "[ 6]  0 / 25 /  50 / 100 / 125",
+        "[ 7]  0 / 25 /  50 / 125 / 125",
+        "[ 8]  0 / 25 / 100 / 125 / 150",
+        "[ 9]  0 / 50 / 100 / 125 / 150",
+        "[10] 25 / 50 /  50 / 100 / 125",
+        "[11] 25 / 50 /  75 / 125 / 150",
         NULL};
     int num=12;
     const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11"};
@@ -1054,7 +1127,12 @@ void cpu_menu() {
     };
     static char* list[] = { "Select max. CPU frequency",
                             "Select CPU governor",
-                            "Select CPU undervolting values",
+                            "Select CPU undervolting PRESETS",
+                            "Select CPU undervolting values 100Mhz",
+                            "Select CPU undervolting values 200Mhz",
+                            "Select CPU undervolting values 400Mhz",
+                            "Select CPU undervolting values 800Mhz",
+                            "Select CPU undervolting values max. Mhz",
                             NULL
     };
     for (;;)
@@ -1079,19 +1157,44 @@ void cpu_menu() {
                 cpu_uv_menu();
                 break;
               }
-        }
+              case 3:
+              {
+                cpu_uv_freq_menu(100);
+                break;
+              }
+              case 4:
+              {
+                cpu_uv_freq_menu(200);
+                break;
+              }
+              case 5:
+              {
+                cpu_uv_freq_menu(400);
+                break;
+              }
+              case 6:
+              {
+                cpu_uv_freq_menu(800);
+                break;
+              }
+               case 7:
+              {
+                cpu_uv_freq_menu(1000);
+                break;
+              }
+       }
     }
 }
 
 void filesystem_menu() {
     static char* headers[] = {  "FILESYSTEM OPTIONS",
-                                "Convert or defragment filesystems...",
+                                "Convert or defragment filesystems and",
+                                "select IO scheduler...",
                                 NULL
     };
     static char* list[] = { "Convert /DATA, /DBDATA, /CACHE -> RFS",
                             "Convert /DATA, /DBDATA, /CACHE -> EXT4",
                             "Convert /SYSTEM -> RFS/EXT4",
-                            "Select IO scheduler",
                             NULL
     };
     for (;;)
@@ -1114,11 +1217,6 @@ void filesystem_menu() {
 			  case 2:
               {
 			    lagfix_system_menu();
-                break;
-              }
-			  case 3:
-              {
-			    IO_sched_menu();
                 break;
               }
         }
@@ -1333,6 +1431,7 @@ void show_advanced_lfs_menu() {
                             "Configure misc./modules",
                             "Configure GFX options",
                             "Configure READ_AHEAD value",
+                            "Configure IO scheduler",
                             "Configure LMK values",
                             "Configure CPU/UV settings",
                             "Configure touchscreen sensitivity",
@@ -1405,22 +1504,27 @@ void show_advanced_lfs_menu() {
                 readahead_menu();  
                 break;
               }
-              case 9:
+			  case 9:
               {
-                lmk_menu(); 
+			    IO_sched_menu();
                 break;
               }
               case 10:
               {
-                cpu_menu(); 
+                lmk_menu(); 
                 break;
               }
               case 11:
               {
-                touch_menu(); 
+                cpu_menu(); 
                 break;
               }
               case 12:
+              {
+                touch_menu(); 
+                break;
+              }
+              case 13:
               {
                 cleanup_menu(); 
                 break;
