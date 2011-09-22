@@ -775,7 +775,7 @@ void custom_menu(
     }
 }
 
-void lmk_menu() {
+void lmk_preset_menu() {
     const char* h[]={   
         "CONFIGURE LOWMEMORYKILLER VALUES",
         "",
@@ -794,6 +794,88 @@ void lmk_menu() {
     const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4","LMK5","LMK6" };
     const char* cnff="/system/etc/midnight_lmk.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void lmk_slot_mb_menu(int slot) {
+    int num=20;
+    const char* cnfv[]={"001","002","003","004","005","006","007","008","009","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
+    const char* m[]={   
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "009",
+        "010",
+        "020",
+        "030",
+        "040",
+        "050",
+        "060",
+        "070",
+        "080",
+        "090",
+        "100",
+        "don't override PRESET value",        
+        NULL};
+
+    if (slot == 1){
+        const char* h[]={   
+            "SLOT1: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot1.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (slot == 2){
+        const char* h[]={   
+            "SLOT2: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot2.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (slot == 3){
+        const char* h[]={   
+            "SLOT3: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot3.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (slot == 4){
+        const char* h[]={   
+            "SLOT4: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot4.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (slot == 5){
+        const char* h[]={   
+            "SLOT5: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot5.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (slot == 6){
+        const char* h[]={   
+            "SLOT6: SELECT LOWMEMORYKILLER VALUE",
+            "multiple selections possible, values will be",
+            "added (e.g. 5+20=25Mb)...",
+            NULL};
+        const char* cnff="/system/etc/midnight_lmk_slot6.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
 }
 
 void modules_menu() {
@@ -861,7 +943,7 @@ void cleanup_menu() {
                             "/system: remove ALL startup/shutdown sounds",
                             "/data  : remove local.prop",
                             "/system: delete VoltageControl initscript",
-                            "/system: delete ALL Midnight conf files",
+                            "/system: delete ALL Midnight config files",
                             NULL
     };
     for (;;)
@@ -1022,18 +1104,19 @@ void IO_sched_menu() {
 
 void cpu_uv_freq_menu(int freq) {
     int num=13;
+    const char* cnfv[]={"000","005","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
     const char* m[]={   
-        " 0 [default]",
-        " 5",
-        "10",
-        "20",
-        "30",
-        "40",
-        "50",
-        "60",
-        "70",
-        "80",
-        "90",
+        "000 [default]",
+        "005",
+        "010",
+        "020",
+        "030",
+        "040",
+        "050",
+        "060",
+        "070",
+        "080",
+        "090",
         "100",
         "don't override PRESET value",        
         NULL};
@@ -1044,7 +1127,6 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnfv[]={"CPU_UV_100_0","CPU_UV_100_5","CPU_UV_100_10","CPU_UV_100_20","CPU_UV_100_30","CPU_UV_100_40","CPU_UV_100_50","CPU_UV_100_60","CPU_UV_100_70","CPU_UV_100_80","CPU_UV_100_90","CPU_UV_100_100","CPU_UV_100_NOOVERRIDE"};
         const char* cnff="/system/etc/midnight_cpu_uv_100.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
@@ -1054,7 +1136,6 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnfv[]={"CPU_UV_200_0","CPU_UV_200_5","CPU_UV_200_10","CPU_UV_200_20","CPU_UV_200_30","CPU_UV_200_40","CPU_UV_200_50","CPU_UV_200_60","CPU_UV_200_70","CPU_UV_200_80","CPU_UV_200_90","CPU_UV_200_100","CPU_UV_200_NOOVERRIDE"};
         const char* cnff="/system/etc/midnight_cpu_uv_200.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
@@ -1064,7 +1145,6 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnfv[]={"CPU_UV_400_0","CPU_UV_400_5","CPU_UV_400_10","CPU_UV_400_20","CPU_UV_400_30","CPU_UV_400_40","CPU_UV_400_50","CPU_UV_400_60","CPU_UV_400_70","CPU_UV_400_80","CPU_UV_400_90","CPU_UV_400_100","CPU_UV_400_NOOVERRIDE"};
         const char* cnff="/system/etc/midnight_cpu_uv_400.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
@@ -1074,7 +1154,6 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnfv[]={"CPU_UV_800_0","CPU_UV_800_5","CPU_UV_800_10","CPU_UV_800_20","CPU_UV_800_30","CPU_UV_800_40","CPU_UV_800_50","CPU_UV_800_60","CPU_UV_800_70","CPU_UV_800_80","CPU_UV_800_90","CPU_UV_800_100","CPU_UV_800_NOOVERRIDE"};
         const char* cnff="/system/etc/midnight_cpu_uv_800.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
@@ -1084,12 +1163,10 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnfv[]={"CPU_UV_MAXMHZ_0","CPU_UV_MAXMHZ_5","CPU_UV_MAXMHZ_10","CPU_UV_MAXMHZ_20","CPU_UV_MAXMHZ_30","CPU_UV_MAXMHZ_40","CPU_UV_MAXMHZ_50","CPU_UV_MAXMHZ_60","CPU_UV_MAXMHZ_70","CPU_UV_MAXMHZ_80","CPU_UV_MAXMHZ_90","CPU_UV_MAXMHZ_100","CPU_UV_MAXMHZ_NOOVERRIDE"};
         const char* cnff="/system/etc/midnight_cpu_uv_maxmhz.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
 }
-
 
 void cpu_uv_menu() {
     const char* h[]={   
@@ -1128,11 +1205,11 @@ void cpu_menu() {
     static char* list[] = { "Select max. CPU frequency",
                             "Select CPU governor",
                             "Select CPU undervolting PRESETS",
-                            "Select CPU undervolting values 100Mhz",
-                            "Select CPU undervolting values 200Mhz",
-                            "Select CPU undervolting values 400Mhz",
-                            "Select CPU undervolting values 800Mhz",
                             "Select CPU undervolting values max. Mhz",
+                            "Select CPU undervolting values 800Mhz",
+                            "Select CPU undervolting values 400Mhz",
+                            "Select CPU undervolting values 200Mhz",
+                            "Select CPU undervolting values 100Mhz",
                             NULL
     };
     for (;;)
@@ -1159,12 +1236,12 @@ void cpu_menu() {
               }
               case 3:
               {
-                cpu_uv_freq_menu(100);
+                cpu_uv_freq_menu(1000);
                 break;
               }
               case 4:
               {
-                cpu_uv_freq_menu(200);
+                cpu_uv_freq_menu(800);
                 break;
               }
               case 5:
@@ -1174,15 +1251,75 @@ void cpu_menu() {
               }
               case 6:
               {
-                cpu_uv_freq_menu(800);
+                cpu_uv_freq_menu(200);
                 break;
               }
                case 7:
               {
-                cpu_uv_freq_menu(1000);
+                cpu_uv_freq_menu(100);
                 break;
               }
        }
+    }
+}
+void lmk_menu() {
+    static char* headers[] = {  "LOWMEMORYKILLER OPTIONS",
+                                "Select LMK preset or build own value which",
+                                "may override preset individual values...",
+                                NULL
+    };
+    static char* list[] = { "LMK presets",
+                            "Setup LMK Slot 1 value (Mb)",
+                            "Setup LMK Slot 2 value (Mb)",
+                            "Setup LMK Slot 3 value (Mb)",
+                            "Setup LMK Slot 4 value (Mb)",
+                            "Setup LMK Slot 5 value (Mb)",
+                            "Setup LMK Slot 6 value (Mb)",
+                            NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+              case 0:
+              {
+				lmk_preset_menu();
+                break;
+              }
+              case 1:
+              {
+			    lmk_slot_mb_menu(1);
+                break;
+              }
+              case 2:
+              {
+			    lmk_slot_mb_menu(2);
+                break;
+              }
+              case 3:
+              {
+			    lmk_slot_mb_menu(3);
+                break;
+              }
+              case 4:
+              {
+			    lmk_slot_mb_menu(4);
+                break;
+              }
+              case 5:
+              {
+			    lmk_slot_mb_menu(5);
+                break;
+              }
+              case 6:
+              {
+			    lmk_slot_mb_menu(6);
+                break;
+              }
+        }
     }
 }
 
@@ -1426,14 +1563,14 @@ void show_advanced_lfs_menu() {
                             "Reboot into Download",
                             "Shutdown",
                             "Switch to Recovery3e",
-                            "Install ROOT/Superuser",
-                            "Configure filesystems and IO scheduler",
+                            "Install ROOT and Superuser",
+                            "Convert filesystems to RFS/EXT4",
                             "Configure misc./modules",
-                            "Configure GFX options",
-                            "Configure READ_AHEAD value",
+                            "Configure video driver options",
+                            "Configure sdcard READ_AHEAD value",
                             "Configure IO scheduler",
-                            "Configure LMK values",
-                            "Configure CPU/UV settings",
+                            "Configure lowmemorykiller values",
+                            "Configure CPU undervolting/overclocking",
                             "Configure touchscreen sensitivity",
                             "Cleanup options",
                             NULL
