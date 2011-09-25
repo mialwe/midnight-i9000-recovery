@@ -426,6 +426,8 @@ void show_nandroid_restore_menu()
     char* file = choose_file_menu("/mnt/sdcard/clockworkmod/backup/", NULL, headers);
     if (file == NULL)
         return;
+    ui_print("Found backup files:\n");
+    show_dir_contents(file);    
 
     if (confirm_selection("Confirm restore?", "Yes - Restore"))
         nandroid_restore(file, 1, 1, 1, 1, 1);
@@ -1022,4 +1024,24 @@ void handle_failure(int ret)
     mkdir("/mnt/sdcard/clockworkmod", S_IRWXU);
     __system("cp /tmp/recovery.log /mnt/sdcard/clockworkmod/recovery.log");
     ui_print("/tmp/recovery.log was copied to /mnt/sdcard/clockworkmod/recovery.log. Please open ROM Manager to report the issue.\n");
+}
+
+void show_dir_contents(const char* dir) {
+    int i;
+    char buf[128];
+    char doit[128];
+    doit[0] = '\0';
+    strcat(doit, "/sbin/dirlist.sh ");
+    strcat(doit, dir);
+    ensure_root_path_mounted("DATA:");
+    ensure_root_path_mounted("SYSTEM:");
+    __system("rm -r /data/midnight/dir.txt");
+    __systemscript(doit);
+    FILE* f = fopen("/data/midnight/dir.txt","r");
+    if (f) {
+      while (fgets(buf,127,f)) {                    
+        ui_print(buf);
+      }
+      fclose(f);
+    }
 }

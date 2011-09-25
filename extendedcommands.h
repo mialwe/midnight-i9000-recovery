@@ -44,3 +44,5 @@ void
 wipe_battery_stats();
 
 void create_fstab();
+
+void show_dir_contents(const char* dir);
