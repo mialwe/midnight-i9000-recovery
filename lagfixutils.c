@@ -903,11 +903,12 @@ void modules_menu() {
     const char* m[]={   
         "Toggle CIFS module loading (filesystem)",
 		"Toggle LOGGER module loading (logcat)",
+		"Toggle TUN module loading (VPN)",
         "Toggle IPv6 privacy (security)",
         "Toggle init.d support",
         NULL};
-    int num=4;
-    const char* cnfv[]={"CIFS","ANDROIDLOGGER","IPV6PRIVACY", "INIT_D" };
+    int num=5;
+    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D" };
     const char* cnff="/system/etc/midnight_misc.conf";
     custom_menu(h,m,num,cnfv,cnff,0);
 }
@@ -965,12 +966,12 @@ void create_backup_dirs() {
 void cleanup_submenu(int m) {
     create_backup_dirs();
     if (m==0){
-        static char* headers[] = {  "REMOVE/RESTORE ALL CUSTOM BOOTANIMATIONS",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/DELETE/RESTORE ALL CUSTOM BOOTANIMATIONS",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove custom bootanimations",
+        static char* list[] = { "Backup custom bootanimations",
+                                "Delete custom bootanimations",
                                 "Restore custom bootanimations",
                                 NULL
         };
@@ -983,31 +984,41 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
-                    if (confirm_selection("Confirm removing custom bootanimations","Yes - remove custom bootanimations")) {  
+                    if (confirm_selection("Confirm backup custom bootanimations","Yes - backup custom bootanimations")) {  
                       ensure_root_path_mounted("SYSTEM:");
                       ensure_root_path_mounted("DATA:");
+                      ui_print("Cleaning backup directory...");
                       __system("rm -r /data/midnight/backups/bootanimation/local/*");                
                       __system("rm -r /data/midnight/backups/bootanimation/system/*");                
-                      ui_print("Backup files to /data/midnight/backups/bootanimation...\n");
+                      ui_print("Backup to /data/midnight/backups/bootanimation...\n");
                       __system("cp /data/local/bootanimation.zip /data/midnight/backups/bootanimation/local");                
                       __system("cp /data/local/sanim.zip /data/midnight/backups/bootanimation/local");                
                       __system("cp /data/local/bootanimation.bin /data/midnight/backups/bootanimation/local");                
                       __system("cp /system/media/bootanimation.zip /data/midnight/backups/bootanimation/system");                
                       __system("cp /system/media/sanim.zip /data/midnight/backups/bootanimation/system");                
-                      ui_print("Removing bootanimations...\n");
+                      ui_print("Done.\n");
+                      ui_print("Backup files:\n");
+                      show_dir_contents("/data/midnight/backups/bootanimation/local");
+                      show_dir_contents("/data/midnight/backups/bootanimation/system");
+                    }
+                    break;
+                  }
+                case 1:
+                  {
+                    if (confirm_selection("Confirm deleting custom bootanimations","Yes - delete custom bootanimations")) {  
+                      ensure_root_path_mounted("SYSTEM:");
+                      ensure_root_path_mounted("DATA:");
+                      ui_print("Deleting bootanimations...\n");
                       __system("rm -f /data/local/bootanimation.zip");                
                       __system("rm -f /data/local/sanim.zip");                
                       __system("rm -f /data/local/bootanimation.bin");                
                       __system("rm -f /system/media/bootanimation.zip");                
                       __system("rm -f /system/media/sanim.zip");                
                       ui_print("Done.\n");
-                      ui_print("Found backup files:\n");
-                      show_dir_contents("/data/midnight/backups/bootanimation/local");
-                      show_dir_contents("/data/midnight/backups/bootanimation/system");
                     }
                     break;
                   }
-                  case 1:
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring custom bootanimations","Yes - restore bootanimations")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1026,13 +1037,13 @@ void cleanup_submenu(int m) {
         }
     }
     if (m==1){
-        static char* headers[] = {  "REMOVE/RESTORE /SYSTEM/ETC/INIT.D CONTENT",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/DELETE/RESTORE /SYSTEM/ETC/INIT.D CONTENT",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove /system/etc/init.d content",
-                                "Restore /system/etc/init.d content",
+        static char* list[] = { "Backup /system/etc/init.d",
+                                "Delete /system/etc/init.d",
+                                "Restore /system/etc/init.d",
                                 NULL
         };
         for (;;)
@@ -1044,21 +1055,31 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
-                    if (confirm_selection("Confirm cleaning /system/etc/init.d","Yes - clean init.d")) {  
+                    if (confirm_selection("Confirm backup /system/etc/init.d","Yes - backup init.d")) {  
                       ensure_root_path_mounted("SYSTEM:");
                       ensure_root_path_mounted("DATA:");
+                      ui_print("Cleaning backup directory...");
                       __system("rm -r /data/midnight/backups/initd/*");                
-                      ui_print("Backup files to /data/midnight/initd...\n");
+                      ui_print("Backup to /data/midnight/initd...\n");
                       __system("cp /system/etc/init.d/* /data/midnight/backups/initd");                
-                      ui_print("Cleaning /system/etc/init.d...\n");
-                      __system("rm -rf /system/etc/init.d/*");                
                       ui_print("Done.\n");
-                      ui_print("Found backup files:\n");
+                      ui_print("Backup files:\n");
                       show_dir_contents("/data/midnight/backups/initd");
                     }
                     break;
                   }
-                  case 1:
+                case 1:
+                  {
+                    if (confirm_selection("Confirm cleaning /system/etc/init.d","Yes - clean init.d")) {  
+                      ensure_root_path_mounted("SYSTEM:");
+                      ensure_root_path_mounted("DATA:");
+                      ui_print("Cleaning /system/etc/init.d...\n");
+                      __system("rm -rf /system/etc/init.d/*");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring /system/etc/init.d","Yes - restore init.d content")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1073,12 +1094,12 @@ void cleanup_submenu(int m) {
         }
     }
     if (m==2){
-        static char* headers[] = {  "REMOVE/RESTORE BOOT/SHUTDOWN SOUNDS",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/REMOVE/RESTORE BOOT/SHUTDOWN SOUNDS",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove boot/shutdown sounds",
+        static char* list[] = { "Backup boot/shutdown sounds",
+                                "Remove boot/shutdown sounds",
                                 "Restore boot/shutdown sounds",
                                 NULL
         };
@@ -1091,26 +1112,37 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
-                    if (confirm_selection("Confirm removing start/shutdown sounds","Yes - remove start/shutdown sounds")) {  
+                    if (confirm_selection("Confirm backup start/shutdown sounds","Yes - backup start/shutdown sounds")) {  
                       ensure_root_path_mounted("SYSTEM:");
                       ensure_root_path_mounted("DATA:");
+                      ui_print("Cleaning backup directory...");
                       __system("rm -r /data/midnight/backups/sounds/*");                
-                      ui_print("Backup files to /data/midnight/backups/sounds...\n");
+                      ui_print("Backup to /data/midnight/backups/sounds...\n");
                       __system("cp /system/etc/PowerOn.snd /data/midnight/backups/sounds");                
                       __system("cp /system/etc/PowerOn.wav /data/midnight/backups/sounds");                
                       __system("cp /system/media/audio/ui/shutdown.ogg /data/midnight/backups/sounds");                
-                      ui_print("Removing startup/shutdown sounds...\n");
-                      __system("rm -f /system/etc/PowerOn.snd");                
-                      __system("rm -f /system/etc/PowerOn.wav");                
-                      __system("rm -f /system/media/audio/ui/shutdown.ogg");                
                       ui_print("Done.\n");
-                      ui_print("Found backup files:\n");
+                      ui_print("Backup files:\n");
                       show_dir_contents("/data/midnight/backups/sounds");
 
                     }
                     break;
                   }
+
                   case 1:
+                  {
+                    if (confirm_selection("Confirm deleting start/shutdown sounds","Yes - delete start/shutdown sounds")) {  
+                      ensure_root_path_mounted("SYSTEM:");
+                      ensure_root_path_mounted("DATA:");
+                      ui_print("Deleting startup/shutdown sounds...\n");
+                      __system("rm -f /system/etc/PowerOn.snd");                
+                      __system("rm -f /system/etc/PowerOn.wav");                
+                      __system("rm -f /system/media/audio/ui/shutdown.ogg");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring boot/shutdown sounds","Yes - restore sounds")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1128,12 +1160,12 @@ void cleanup_submenu(int m) {
     }
 
     if (m==3){
-        static char* headers[] = {  "REMOVE/RESTORE /data/local.prop",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/REMOVE/RESTORE /data/local.prop",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove /data/local.prop",
+        static char* list[] = { "Backup /data/local.prop",
+                                "Remove /data/local.prop",
                                 "Restore /data/local.prop",
                                 NULL
         };
@@ -1146,20 +1178,29 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
-                    if (confirm_selection("Confirm deleting /data/local.prop","Yes - delete /data/local.prop")) {  
+                    if (confirm_selection("Confirm backup /data/local.prop","Yes - backup /data/local.prop")) {  
                       ensure_root_path_mounted("DATA:");
+                      ui_print("Cleaning backup directory...");
                       __system("rm -r /data/midnight/backups/localprop/*");                                      
                       ui_print("Backup files to /data/midnight/backups/localprop...\n");
                       __system("cp /data/local.prop /data/midnight/backups/localprop");
-                      ui_print("Removing /data/local.prop...\n");
-                      __system("rm -rf /data/local.prop");                
                       ui_print("Done.\n");
-                      ui_print("Found backup files:\n");
+                      ui_print("Backup files:\n");
                       show_dir_contents("/data/midnight/backups/localprop");
                     }
                     break;
                   }
                   case 1:
+                  {
+                    if (confirm_selection("Confirm deleting /data/local.prop","Yes - delete /data/local.prop")) {  
+                      ensure_root_path_mounted("DATA:");
+                      ui_print("Deleting /data/local.prop...\n");
+                      __system("rm -rf /data/local.prop");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring /data/local.prop","Yes - restore /data/local.prop")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1175,12 +1216,12 @@ void cleanup_submenu(int m) {
     }
     
     if (m==4){
-        static char* headers[] = {  "REMOVE/RESTORE INIT.D/S_VOLT_SCHEDULER",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/REMOVE/RESTORE INIT.D/S_VOLT_SCHEDULER",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove init.d/S_volt_scheduler",
+        static char* list[] = { "Backup init.d/S_volt_scheduler",
+                                "Remove init.d/S_volt_scheduler",
                                 "Restore init.d/S_volt_scheduler",
                                 NULL
         };
@@ -1193,12 +1234,23 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
-                    if (confirm_selection("Confirm deleting init.d/S_volt_scheduler","Yes - delete init.d/S_volt_scheduler")) {  
+                    if (confirm_selection("Confirm backup init.d/S_volt_scheduler","Yes - backup init.d/S_volt_scheduler")) {  
                       ensure_root_path_mounted("SYSTEM:");
+                      ui_print("Cleaning backup directory...");
                       __system("rm -r /data/midnight/backups/voltage-control/*");                                      
                       ui_print("Backup files to /data/midnight/backups/voltage-control...\n");
                       __system("cp /system/etc/init.d/S_volt_scheduler /data/midnight/backups/voltage-control");
-                      ui_print("Removing /system/etc/init.d/S_volt_scheduler...\n");
+                      ui_print("Done.\n");
+                      ui_print("Backup files:\n");
+                      show_dir_contents("/data/midnight/backups/voltage-control");
+                    }
+                    break;
+                  }
+                  case 1:
+                  {
+                    if (confirm_selection("Confirm deleting init.d/S_volt_scheduler","Yes - delete init.d/S_volt_scheduler")) {  
+                      ensure_root_path_mounted("SYSTEM:");
+                      ui_print("Deleting /system/etc/init.d/S_volt_scheduler...\n");
                       __system("rm -rf /system/etc/init.d/S_volt_scheduler");                
                       ui_print("Done.\n");
                       ui_print("Found backup files:\n");
@@ -1206,7 +1258,7 @@ void cleanup_submenu(int m) {
                     }
                     break;
                   }
-                  case 1:
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring init.d/S_volt_scheduler","Yes - restore init.d/S_volt_scheduler")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1222,12 +1274,12 @@ void cleanup_submenu(int m) {
     }
     
     if (m==5){
-        static char* headers[] = {  "REMOVE/RESTORE MIDNIGHT CONFIG FILES",
-                                    "This will try to backup your files (overwriting",
-                                    "previously backuped files) to /data/midnight,",
-                                    "then deletes them.",
+        static char* headers[] = {  "BACKUP/DELETE/RESTORE MIDNIGHT CONFIG FILES",
+                                    "Backup your files (overwriting previously backuped",
+                                    "files) to /data/midnight, delete or restore them.",
                                     NULL};
-        static char* list[] = { "Remove Midnight config files",
+        static char* list[] = { "Backup Midnight config files",
+                                "Delete Midnight config files",
                                 "Restore Midnight config files",
                                 NULL
         };
@@ -1240,12 +1292,23 @@ void cleanup_submenu(int m) {
             {
                   case 0:
                   {
+                    if (confirm_selection("Confirm backup Midnight conf files","Yes - backup Midnight config files")) {  
+                      ensure_root_path_mounted("SYSTEM:");
+                      ui_print("Cleaning backup directory...");
+                      __system("rm -r /data/midnight/backups/midnight-conf/*");                                      
+                      ui_print("Backup to /data/midnight/backups/midnight-conf...\n");
+                      __system("cp /system/etc/midnight_*.conf /data/midnight/backups/midnight-conf");
+                      ui_print("Done.\n");
+                      ui_print("Backup files:\n");
+                      show_dir_contents("/data/midnight/backups/midnight-conf");
+                    }
+                    break;
+                  }
+                  case 1:
+                  {
                     if (confirm_selection("Confirm deleting Midnight conf files","Yes - delete ALL Midnight config files")) {  
                       ensure_root_path_mounted("SYSTEM:");
-                      __system("rm -r /data/midnight/backups/midnight-conf/*");                                      
-                      ui_print("Backup files to /data/midnight/backups/midnight-conf...\n");
-                      __system("cp /system/etc/midnight_*.conf /data/midnight/backups/midnight-conf");
-                      ui_print("Removing /system/etc/midnight_*.conf\n");
+                      ui_print("Deleting /system/etc/midnight_*.conf\n");
                       __system("rm -rf /system/etc/midnight_*.conf");                
                       ui_print("Done.\n");
                       ui_print("Found backup files:\n");
@@ -1253,7 +1316,7 @@ void cleanup_submenu(int m) {
                     }
                     break;
                   }
-                  case 1:
+                  case 2:
                   {
                     if (confirm_selection("Confirm restoring Midnight config files","Yes - restore Midnight config files")) {  
                       ensure_root_path_mounted("SYSTEM:");
@@ -1272,16 +1335,16 @@ void cleanup_submenu(int m) {
 void cleanup_menu() {
     create_backup_dirs();
     static char* headers[] = {  "MISC. CLEANUP OPTIONS",
-                                "Remove unneeded/unwanted files...",
+                                "Backup, delete and restore files...",
                                 "",
                                 NULL
     };
-    static char* list[] = { "Remove ALL custom bootanimations",
-                            "/system: remove ALL /etc/init.d initscripts",
-                            "/system: remove ALL startup/shutdown sounds",
-                            "/data  : remove local.prop",
-                            "/system: delete VoltageControl initscript",
-                            "/system: delete ALL Midnight config files",
+    static char* list[] = { "Custom bootanimations (@system,@data)",
+                            "Initscripts in init.d (@system)",
+                            "Startup/shutdown sounds (@system)",
+                            "local.prop (@data)",
+                            "VoltageControl initscript (@system)",
+                            "Midnight config files (@system)",
                             NULL
     };
     for (;;)
@@ -1293,33 +1356,47 @@ void cleanup_menu() {
         {
               case 0:
               {
+                ui_print("Checking if file(s) installed:\n");
+                show_dir_contents("/data/local/bootanimation.*");                  
+                show_dir_contents("/data/local/sanim.zip");                  
+                show_dir_contents("/system/media/bootanimation.*");                  
+                show_dir_contents("/system/media/sanim.zip");                  
                 cleanup_submenu(0);    
                 break;
               }
               case 1:
               {
-                ui_print("/system/etc/init.d contents:\n");
+                ui_print("Checking if file(s) installed:\n");
                 show_dir_contents("/system/etc/init.d");                  
                 cleanup_submenu(1);
                 break;
               }
               case 2:
               {
+                ui_print("Checking if file(s) installed:\n");
+                show_dir_contents("/system/etc/PowerOn.*");                  
+                show_dir_contents("/system/media/audio/ui/shutdown.ogg");                  
                 cleanup_submenu(2);
                 break;
               } 
               case 3:
               {
+                ui_print("Checking if file(s) installed:\n");
+                show_dir_contents("'/data/local.prop'");                  
                 cleanup_submenu(3);
                 break;
               }
               case 4:
               {
+                ui_print("Checking if file(s) installed:\n");
+                show_dir_contents("'/system/etc/init.d/S_volt_scheduler'");                  
                 cleanup_submenu(4);
                 break;
               }
               case 5:
               {
+                ui_print("Checking if file(s) installed:\n");
+                show_dir_contents("'/system/etc/midnight_*.conf'");                  
                 cleanup_submenu(5);
                 break;
               }
@@ -1359,9 +1436,10 @@ void cpu_max_menu() {
         "800Mhz (throtteled 1Ghz)",
         "1000Mhz [default]",
         "1200Mhz",
+        "1300Mhz",
         NULL};
-    int num=4;
-    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200"};
+    int num=5;
+    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200","CPU_MAX_1300"};
     const char* cnff="/system/etc/midnight_cpu_max.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
@@ -1461,9 +1539,27 @@ void cpu_uv_freq_menu(int freq) {
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_maxmhz.conf";
+        const char* cnff="/system/etc/midnight_cpu_uv_1000.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
+    if (freq == 1200){
+        const char* h[]={   
+            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnff="/system/etc/midnight_cpu_uv_1200.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }
+    if (freq == 1300){
+        const char* h[]={   
+            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "multiple selections possible, values will be",
+            "added (e.g. (-5)+(-20)=-25mV...",
+            NULL};
+        const char* cnff="/system/etc/midnight_cpu_uv_1300.conf";
+        custom_menu(h,m,num,cnfv,cnff,0);
+    }    
 }
 
 void cpu_uv_menu() {
@@ -1474,36 +1570,181 @@ void cpu_uv_menu() {
         "MANUAL SETTINGS OVERRIDE PRESETS.",
         NULL};
     const char* m[]={   
-        "[ 0]  0 /  0 /   0 /   0 /   0 [default]",
-        "[ 1]  0 /  0 /  25 /  25 /  50",
-        "[ 2]  0 / 25 /  25 /  50 /  50",
-        "[ 3]  0 / 25 /  25 /  50 / 100",
-        "[ 4]  0 / 25 /  50 / 100 / 100",
-        "[ 5]  0 / 25 /  75 / 100 / 125",
-        "[ 6]  0 / 25 /  50 / 100 / 125",
-        "[ 7]  0 / 25 /  50 / 125 / 125",
-        "[ 8]  0 / 25 / 100 / 125 / 150",
-        "[ 9]  0 / 50 / 100 / 125 / 150",
-        "[10] 25 / 50 /  50 / 100 / 125",
-        "[11] 25 / 50 /  75 / 125 / 150",
+        "[ 0]  0/ 0/ 0/ 0/  0/  0/  0",
+        "[ 1]  0/ 0/ 0/ 0/ 25/ 25/ 50",
+        "[ 2]  0/ 0/ 0/25/ 25/ 50/ 50",
+        "[ 3]  0/ 0/ 0/25/ 25/ 50/100",
+        "[ 4]  0/ 0/ 0/25/ 50/100/100",
+        "[ 5]  0/ 0/ 0/25/ 75/100/125",
+        "[ 6]  0/ 0/ 0/25/ 50/100/125",
+        "[ 7]  0/ 0/ 0/25/ 50/125/125",
+        "[ 8]  0/ 0/ 0/25/100/125/150",
+        "[ 9]  0/ 0/ 0/50/100/125/150",
+        "[10]  0/ 0/25/50/ 50/100/125",
+        "[11]  0/ 5/25/50/ 75/125/150",
+        "[12]  5/15/25/50/ 75/125/150",
+        "[13] 10/15/25/50/ 75/125/150",
         NULL};
-    int num=12;
-    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11"};
+    int num=14;
+    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11","CPU_UV_12","CPU_UV_13"};
     const char* cnff="/system/etc/midnight_cpu_uv.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
 
+void cpu_gov_settings_conservative_up_menu() {
+    const char* h[]={   
+        "SELECT CONSERVATIVE GOVERNOR UP_THRESHOLD",
+        "Higher values will make the CPU scale up",
+        "later and save more battery [60 DEFAULT].",
+        NULL};
+    int num=20;
+    const char* cnfv[]={"001","002","003","004","005","006","007","008","009","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
+    const char* m[]={   
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "009",
+        "010",
+        "020",
+        "030",
+        "040",
+        "050",
+        "060",
+        "070",
+        "080",
+        "090",
+        "100",
+        "don't override DEFAULT value",        
+        NULL};
+    const char* cnff="/system/etc/midnight_cpu_gov_cons_up.conf";
+    custom_menu(h,m,num,cnfv,cnff,0);
+}
+
+void cpu_gov_settings_conservative_down_menu() {
+    const char* h[]={   
+        "SELECT CONSERVATIVE GOVERNOR DOWN_THRESHOLD",
+        "Higher values will make the CPU scale down",
+        "later and save more battery [45 DEFAULT].",
+        NULL};
+    int num=20;
+    const char* cnfv[]={"001","002","003","004","005","006","007","008","009","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
+    const char* m[]={   
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "009",
+        "010",
+        "020",
+        "030",
+        "040",
+        "050",
+        "060",
+        "070",
+        "080",
+        "090",
+        "100",
+        "don't override DEFAULT value",        
+        NULL};
+    const char* cnff="/system/etc/midnight_cpu_gov_cons_down.conf";
+    custom_menu(h,m,num,cnfv,cnff,0);
+}
+
+void cpu_gov_settings_ondemand_up_menu() {
+    const char* h[]={   
+        "SELECT ONDEMAND GOVERNOR UP_THESHOLD",
+        "Higher values will make the CPU switch",
+        "to max. frequency later and save more",
+        "battery [85 DEFAULT].",
+        NULL};
+    int num=20;
+    const char* cnfv[]={"001","002","003","004","005","006","007","008","009","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
+    const char* m[]={   
+        "001",
+        "002",
+        "003",
+        "004",
+        "005",
+        "006",
+        "007",
+        "008",
+        "009",
+        "010",
+        "020",
+        "030",
+        "040",
+        "050",
+        "060",
+        "070",
+        "080",
+        "090",
+        "100",
+        "don't override DEFAULT value",        
+        NULL};
+    const char* cnff="/system/etc/midnight_cpu_gov_ond_up.conf";
+    custom_menu(h,m,num,cnfv,cnff,0);
+}
+
+void cpu_gov_settings_menu() {
+    static char* headers[] = {  "CPU GOVERNOR OPTIONS",
+                                "Configure CPU governor tunables to",
+                                "customize up/downscaling behaviour...",
+                                NULL
+    };
+    static char* list[] = { "Select conservative UP_THRESHOLD",
+                            "Select conservative DOWN_THRESHOLD",
+                            "Select ondemand UP_THRESHOLD",
+                            NULL
+    };
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+              case 0:
+              {
+                cpu_gov_settings_conservative_up_menu();
+                break;
+              }
+              case 1:
+              {
+                cpu_gov_settings_conservative_down_menu();
+                break;
+              }
+              case 2:
+              {
+                cpu_gov_settings_ondemand_up_menu();
+                break;
+              }
+       }
+    }
+}
+
 void cpu_menu() {
-    static char* headers[] = {  "CPU / UV OPTIONS",
+    static char* headers[] = {  "CPU OPTIONS",
                                 "Configure CPU max. frequency, governor and",
                                 "customize undervolting values for better "
                                 "battery life and device temperature...",
                                 NULL
     };
-    static char* list[] = { "Select max. CPU frequency",
+    static char* list[] = { "Select CPU max. frequency",
                             "Select CPU governor",
+                            "Adjust CPU governor thresholds",
                             "Select CPU undervolting preset",
-                            "Setup CPU undervolting value max. Mhz",
+                            "Setup CPU undervolting value 1300Mhz",
+                            "Setup CPU undervolting value 1200Mhz",
+                            "Setup CPU undervolting value 1000Mhz",
                             "Setup CPU undervolting value 800Mhz",
                             "Setup CPU undervolting value 400Mhz",
                             "Setup CPU undervolting value 200Mhz",
@@ -1530,42 +1771,61 @@ void cpu_menu() {
               }
               case 2:
               {
-                cpu_uv_menu();
+                cpu_gov_settings_menu();
                 break;
               }
               case 3:
               {
-                cpu_uv_freq_menu(1000);
+                cpu_uv_menu();
                 break;
               }
               case 4:
               {
-                cpu_uv_freq_menu(800);
+                cpu_uv_freq_menu(1300);
                 break;
               }
               case 5:
               {
-                cpu_uv_freq_menu(400);
+                cpu_uv_freq_menu(1200);
                 break;
               }
               case 6:
               {
+                cpu_uv_freq_menu(1000);
+                break;
+              }
+              case 7:
+              {
+                cpu_uv_freq_menu(800);
+                break;
+              }
+              case 8:
+              {
+                cpu_uv_freq_menu(400);
+                break;
+              }
+              case 9:
+              {
                 cpu_uv_freq_menu(200);
                 break;
               }
-               case 7:
+               case 10:
               {
                 cpu_uv_freq_menu(100);
                 break;
               }
-               case 8:
+               case 11:
               {
                 if (confirm_selection("Confirm deleting undervolting settings","Yes - delete ALL undervolting settings")) {  
                   ensure_root_path_mounted("SYSTEM:");
                   ui_print("Deleting stored preset...\n");
                   __system("rm -rf /system/etc/midnight_cpu_uv.conf");                
-                  ui_print("Deleting stored max. freq. value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_maxmhz.conf");                
+                  ui_print("Deleting stored 1300Mhz value...\n");
+                  __system("rm -rf /system/etc/midnight_cpu_uv_1300.conf");                
+                  ui_print("Deleting stored 1200Mhz value...\n");
+                  __system("rm -rf /system/etc/midnight_cpu_uv_1200.conf");                
+                  ui_print("Deleting stored 1000 value...\n");
+                  __system("rm -rf /system/etc/midnight_cpu_uv_1000.conf");                
                   ui_print("Deleting stored 800Mhz value...\n");
                   __system("rm -rf /system/etc/midnight_cpu_uv_800.conf");                
                   ui_print("Deleting stored 400Mhz value...\n");
@@ -1855,9 +2115,9 @@ void convertfs_rfs_menu() {
 
 void apply_root_menu() {
     static char* headers[] = {  "INSTALL ROOT",
-                                "busybox and su will be installed to",
-                                "/system, be sure to have enough free",
-                                "space (~1Mb) on /system partition...",
+                                "Be sure to have enough free space",
+                                "space (~1Mb) on /system partition, use",
+                                "cleanup options to free space if needed...",
                                 NULL
     };
 
@@ -1913,7 +2173,7 @@ void show_advanced_lfs_menu() {
                             "Configure sdcard READ_AHEAD value",
                             "Configure IO scheduler",
                             "Configure lowmemorykiller values",
-                            "Configure CPU undervolting/overclocking",
+                            "Configure CPU",
                             "Configure touchscreen sensitivity",
                             "Cleanup options",
                             NULL

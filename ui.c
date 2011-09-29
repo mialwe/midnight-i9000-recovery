@@ -490,7 +490,7 @@ int ui_start_menu(char** headers, char** items) {
     pthread_mutex_lock(&gUpdateMutex);
     if (text_rows > 0 && text_cols > 0) {
         for (i = 0; i < text_rows; ++i) {
-            if (headers[i] == NULL) break;
+            if (headers[i] == NULL) break; // add line separator here?
             strncpy(menu[i], headers[i], text_cols-1);
             menu[i][text_cols-1] = '\0';
         }

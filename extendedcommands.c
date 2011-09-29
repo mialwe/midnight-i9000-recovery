@@ -1028,6 +1028,7 @@ void handle_failure(int ret)
 
 void show_dir_contents(const char* dir) {
     int i;
+    int ret;
     char buf[128];
     char doit[128];
     doit[0] = '\0';
@@ -1036,7 +1037,10 @@ void show_dir_contents(const char* dir) {
     ensure_root_path_mounted("DATA:");
     ensure_root_path_mounted("SYSTEM:");
     __system("rm -r /data/midnight/dir.txt");
-    __systemscript(doit);
+    if (0 != (ret = __systemscript(doit))) {
+        ui_print("No file(s) found!\n");
+        return;
+    }
     FILE* f = fopen("/data/midnight/dir.txt","r");
     if (f) {
       while (fgets(buf,127,f)) {                    
