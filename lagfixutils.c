@@ -57,6 +57,27 @@ void apply_rm(char* name) {
   __system(tmp);
 }
 
+void remove_root_from_device(void){
+  ensure_root_path_mounted("SYSTEM:");
+  ensure_root_path_mounted("DATA:");
+
+  ui_print("Deleting all su binaries...\n");
+  __system("rm /system/bin/su");
+  __system("rm /system/xbin/su");
+  __system("rm /vendor/bin/su");
+  __system("rm /system/sbin/su");
+
+  ui_print("Deleting all busybox binaries...\n");
+  __system("rm /system/xbin/busybox");
+  __system("rm /system/bin/busybox");
+  __system("rm /vendor/bin/busybox");
+  __system("rm /system/sbin/busybox");
+
+  ui_print("Deleting Superuser.apk...\n");
+  __system("rm /system/app/Superuser.apk");
+  __system("rm /data/app/Superuser.apk");
+
+    }
 void apply_root_to_device(int mode) {
   ensure_root_path_mounted("SYSTEM:");
   ui_print("Copying Superuser and Busybox files to /system/xbin\n");
@@ -64,6 +85,8 @@ void apply_root_to_device(int mode) {
   ui_print("Copying su binary\n");
   __system("rm /system/bin/su");
   __system("rm /system/xbin/su");
+  __system("rm /system/sbin/su");
+  __system("rm /vendor/bin/su");
   __system("cp /res/misc/su /system/xbin/su");
   __system("chown 0.0 /system/xbin/su");
   __system("chmod 4755 /system/xbin/su");
@@ -78,6 +101,8 @@ void apply_root_to_device(int mode) {
   ui_print("Copying Busybox executable\n");
   __system("rm /system/xbin/busybox");
   __system("rm /system/bin/busybox");
+  __system("rm /vendor/bin/busybox");
+  __system("rm /system/sbin/busybox");
   __system("cp /sbin/recovery /system/xbin/busybox");
   __system("chmod 755 /system/xbin/busybox");
 
@@ -1345,6 +1370,7 @@ void cleanup_menu() {
                             "local.prop (@data)",
                             "VoltageControl initscript (@system)",
                             "Midnight config files (@system)",
+                            "Superuser, su, busybox (@system,@data)",
                             NULL
     };
     for (;;)
@@ -1400,6 +1426,13 @@ void cleanup_menu() {
                 cleanup_submenu(5);
                 break;
               }
+              case 6:
+              {
+                if (confirm_selection("Confirm deleting su/superuser/busybox","Yes - delete su/superuser/busybox")) {  
+                    remove_root_from_device();
+                }
+                break;
+              }
 
         }
     }
@@ -1432,8 +1465,8 @@ void cpu_max_menu() {
         "battery life...",
         NULL};
     const char* m[]={   
-        "400Mhz (throtteled 1Ghz)",
-        "800Mhz (throtteled 1Ghz)",
+        "400Mhz",
+        "800Mhz",
         "1000Mhz [default]",
         "1200Mhz",
         "1300Mhz",
@@ -1535,7 +1568,7 @@ void cpu_uv_freq_menu(int freq) {
     }
     if (freq == 1000){
         const char* h[]={   
-            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "1000Mhz: SELECT CPU UNDERVOLTING VALUES",
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
@@ -1544,7 +1577,7 @@ void cpu_uv_freq_menu(int freq) {
     }
     if (freq == 1200){
         const char* h[]={   
-            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "1200Mhz: SELECT CPU UNDERVOLTING VALUES",
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
@@ -1553,13 +1586,13 @@ void cpu_uv_freq_menu(int freq) {
     }
     if (freq == 1300){
         const char* h[]={   
-            "Max. frequency: SELECT CPU UNDERVOLTING VALUES",
+            "1300Mhz: SELECT CPU UNDERVOLTING VALUES",
             "multiple selections possible, values will be",
             "added (e.g. (-5)+(-20)=-25mV...",
             NULL};
         const char* cnff="/system/etc/midnight_cpu_uv_1300.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
-    }    
+    }
 }
 
 void cpu_uv_menu() {
@@ -1567,6 +1600,7 @@ void cpu_uv_menu() {
         "SELECT CPU UNDERVOLTING mV VALUES",
         "Lower values can save battery, too low",
         "values can cause system instability...",
+        "Values:1300/1200/1000/800/400/200/100Mhz.",
         "MANUAL SETTINGS OVERRIDE PRESETS.",
         NULL};
     const char* m[]={   
@@ -1580,13 +1614,15 @@ void cpu_uv_menu() {
         "[ 7]  0/ 0/ 0/25/ 50/125/125",
         "[ 8]  0/ 0/ 0/25/100/125/150",
         "[ 9]  0/ 0/ 0/50/100/125/150",
-        "[10]  0/ 0/25/50/ 50/100/125",
+        "[10]  0/ 0/15/50/ 50/100/125",
         "[11]  0/ 5/25/50/ 75/125/150",
-        "[12]  5/15/25/50/ 75/125/150",
-        "[13] 10/15/25/50/ 75/125/150",
+        "[12]  0/10/15/50/ 75/125/150",
+        "[13]  0/15/25/50/ 75/125/150",
+        "[14]  5/10/15/50/ 75/125/150",
+        "[15] 10/15/25/50/ 75/125/150",
         NULL};
-    int num=14;
-    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11","CPU_UV_12","CPU_UV_13"};
+    int num=16;
+    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11","CPU_UV_12","CPU_UV_13","CPU_UV_14","CPU_UV_15"};
     const char* cnff="/system/etc/midnight_cpu_uv.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
@@ -1700,9 +1736,9 @@ void cpu_gov_settings_menu() {
                                 "customize up/downscaling behaviour...",
                                 NULL
     };
-    static char* list[] = { "Select conservative UP_THRESHOLD",
-                            "Select conservative DOWN_THRESHOLD",
-                            "Select ondemand UP_THRESHOLD",
+    static char* list[] = { "Select conservative UP_THRESHOLD...",
+                            "Select conservative DOWN_THRESHOLD...",
+                            "Select ondemand UP_THRESHOLD...",
                             NULL
     };
     for (;;)
@@ -1738,18 +1774,18 @@ void cpu_menu() {
                                 "battery life and device temperature...",
                                 NULL
     };
-    static char* list[] = { "Select CPU max. frequency",
-                            "Select CPU governor",
-                            "Adjust CPU governor thresholds",
-                            "Select CPU undervolting preset",
-                            "Setup CPU undervolting value 1300Mhz",
-                            "Setup CPU undervolting value 1200Mhz",
-                            "Setup CPU undervolting value 1000Mhz",
-                            "Setup CPU undervolting value 800Mhz",
-                            "Setup CPU undervolting value 400Mhz",
-                            "Setup CPU undervolting value 200Mhz",
-                            "Setup CPU undervolting value 100Mhz",
-                            "Reset CPU undervolting default values",
+    static char* list[] = { "Select CPU max. frequency...",
+                            "Select CPU governor...",
+                            "Adjust CPU governor thresholds...",
+                            "Select CPU undervolting preset...",
+                            "Setup CPU undervolting 1300Mhz...",
+                            "Setup CPU undervolting 1200Mhz...",
+                            "Setup CPU undervolting 1000Mhz...",
+                            "Setup CPU undervolting 800Mhz...",
+                            "Setup CPU undervolting 400Mhz...",
+                            "Setup CPU undervolting 200Mhz...",
+                            "Setup CPU undervolting 100Mhz...",
+                            "Reset CPU undervolting defaults...",
                             NULL
     };
     for (;;)
@@ -1824,7 +1860,7 @@ void cpu_menu() {
                   __system("rm -rf /system/etc/midnight_cpu_uv_1300.conf");                
                   ui_print("Deleting stored 1200Mhz value...\n");
                   __system("rm -rf /system/etc/midnight_cpu_uv_1200.conf");                
-                  ui_print("Deleting stored 1000 value...\n");
+                  ui_print("Deleting stored 1000Mhz value...\n");
                   __system("rm -rf /system/etc/midnight_cpu_uv_1000.conf");                
                   ui_print("Deleting stored 800Mhz value...\n");
                   __system("rm -rf /system/etc/midnight_cpu_uv_800.conf");                
@@ -2121,7 +2157,7 @@ void apply_root_menu() {
                                 NULL
     };
 
-    static char* list[] = { "Install ROOT (busybox+su)",
+    static char* list[] = { "Install ROOT (su, Superuser, busybox)",
                             "Install ROOT and remove some toolbox cmds",
                             "Install ROOT and remove most toolbox cmds",
                             NULL
