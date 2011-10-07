@@ -1462,17 +1462,16 @@ void cpu_max_menu() {
     const char* h[]={   
         "SELECT CPU MAX FREQUENCY",
         "Limit your CPU frequency to preserve",
-        "battery life...",
+        "battery life. Brackets = (arm.volt/internal volt).",
         NULL};
     const char* m[]={   
         "400Mhz",
         "800Mhz",
         "1000Mhz [default]",
         "1200Mhz",
-        "1300Mhz",
         NULL};
-    int num=5;
-    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200","CPU_MAX_1300"};
+    int num=4;
+    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200"};
     const char* cnff="/system/etc/midnight_cpu_max.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
@@ -1584,15 +1583,6 @@ void cpu_uv_freq_menu(int freq) {
         const char* cnff="/system/etc/midnight_cpu_uv_1200.conf";
         custom_menu(h,m,num,cnfv,cnff,0);
     }
-    if (freq == 1300){
-        const char* h[]={   
-            "1300Mhz: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_1300.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
 }
 
 void cpu_uv_menu() {
@@ -1604,22 +1594,22 @@ void cpu_uv_menu() {
         "MANUAL SETTINGS OVERRIDE PRESETS.",
         NULL};
     const char* m[]={   
-        "[ 0]  0/ 0/ 0/ 0/  0/  0/  0",
-        "[ 1]  0/ 0/ 0/ 0/ 25/ 25/ 50",
-        "[ 2]  0/ 0/ 0/25/ 25/ 50/ 50",
-        "[ 3]  0/ 0/ 0/25/ 25/ 50/100",
-        "[ 4]  0/ 0/ 0/25/ 50/100/100",
-        "[ 5]  0/ 0/ 0/25/ 75/100/125",
-        "[ 6]  0/ 0/ 0/25/ 50/100/125",
-        "[ 7]  0/ 0/ 0/25/ 50/125/125",
-        "[ 8]  0/ 0/ 0/25/100/125/150",
-        "[ 9]  0/ 0/ 0/50/100/125/150",
-        "[10]  0/ 0/15/50/ 50/100/125",
-        "[11]  0/ 5/25/50/ 75/125/150",
-        "[12]  0/10/15/50/ 75/125/150",
-        "[13]  0/15/25/50/ 75/125/150",
-        "[14]  5/10/15/50/ 75/125/150",
-        "[15] 10/15/25/50/ 75/125/150",
+        "[ 0]  0/ 0/ 0/  0/  0/  0",
+        "[ 1]  0/ 0/ 0/ 25/ 25/ 50",
+        "[ 2]  0/ 0/25/ 25/ 50/ 50",
+        "[ 3]  0/ 0/25/ 25/ 50/100",
+        "[ 4]  0/ 0/25/ 50/100/100",
+        "[ 5]  0/ 0/25/ 75/100/125",
+        "[ 6]  0/ 0/25/ 50/100/125",
+        "[ 7]  0/ 0/25/ 50/125/125",
+        "[ 8]  0/ 0/25/100/125/150",
+        "[ 9]  0/ 0/50/100/125/150",
+        "[10]  0/15/50/ 50/100/125",
+        "[11]  5/25/50/ 75/125/150",
+        "[12] 10/15/50/ 75/125/150",
+        "[13] 15/25/50/ 75/125/150",
+        "[14] 10/15/50/ 75/125/175",
+        "[15] 15/25/75/100/150/175",
         NULL};
     int num=16;
     const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11","CPU_UV_12","CPU_UV_13","CPU_UV_14","CPU_UV_15"};
