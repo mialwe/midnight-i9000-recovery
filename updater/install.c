@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2009 The Android Open Source Project
- * Copyright (c) 2010, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,30 +31,42 @@
 #include "edify/expr.h"
 #include "mincrypt/sha.h"
 #include "minzip/DirUtil.h"
-#include "mtdutils/mounts.h"
+#include "mounts.h"
 #include "mtdutils/mtdutils.h"
-#include "mmcutils/mmcutils.h"
 #include "updater.h"
 #include "applypatch/applypatch.h"
 
-// mount(type, location, mount_point)
+#include "flashutils/flashutils.h"
+
+#ifdef USE_EXT4
+#include "make_ext4fs.h"
+#endif
+
+// mount(fs_type, partition_type, location, mount_point)
 //
-//   what:  type="MTD"   location="<partition>"            to mount a yaffs2 filesystem
-//          type="vfat"  location="/dev/block/<whatever>"  to mount a device
+//    fs_type="yaffs2" partition_type="MTD"     location=partition
+//    fs_type="ext4"   partition_type="EMMC"    location=device
 Value* MountFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
-    if (argc != 3) {
-        return ErrorAbort(state, "%s() expects 3 args, got %d", name, argc);
+    if (argc != 4) {
+        return ErrorAbort(state, "%s() expects 4 args, got %d", name, argc);
     }
-    char* type;
+    char* fs_type;
+    char* partition_type;
     char* location;
     char* mount_point;
-    if (ReadArgs(state, argv, 3, &type, &location, &mount_point) < 0) {
+    if (ReadArgs(state, argv, 4, &fs_type, &partition_type,
+                 &location, &mount_point) < 0) {
         return NULL;
     }
 
-    if (strlen(type) == 0) {
-        ErrorAbort(state, "type argument to %s() can't be empty", name);
+    if (strlen(fs_type) == 0) {
+        ErrorAbort(state, "fs_type argument to %s() can't be empty", name);
+        goto done;
+    }
+    if (strlen(partition_type) == 0) {
+        ErrorAbort(state, "partition_type argument to %s() can't be empty",
+                   name);
         goto done;
     }
     if (strlen(location) == 0) {
@@ -69,7 +80,7 @@ Value* MountFn(const char* name, State* state, int argc, Expr* argv[]) {
 
     mkdir(mount_point, 0755);
 
-    if (strcmp(type, "MTD") == 0) {
+    if (strcmp(partition_type, "MTD") == 0) {
         mtd_scan_partitions();
         const MtdPartition* mtd;
         mtd = mtd_find_partition_by_name(location);
@@ -79,32 +90,15 @@ Value* MountFn(const char* name, State* state, int argc, Expr* argv[]) {
             result = strdup("");
             goto done;
         }
-        if (mtd_mount_partition(mtd, mount_point, "yaffs2", 0 /* rw */) != 0) {
+        if (mtd_mount_partition(mtd, mount_point, fs_type, 0 /* rw */) != 0) {
             fprintf(stderr, "mtd mount of %s failed: %s\n",
                     location, strerror(errno));
             result = strdup("");
             goto done;
         }
         result = mount_point;
-    } else if (strcmp(type, "MMC") == 0) {
-        mmc_scan_partitions();
-        const MmcPartition* mmc;
-        mmc = mmc_find_partition_by_name(location);
-        if (mmc == NULL) {
-            fprintf(stderr, "%s: no mmc partition named \"%s\"",
-                    name, location);
-            result = strdup("");
-            goto done;
-        }
-        if (mmc_mount_partition(mmc, mount_point, 0 /* rw */) != 0) {
-            fprintf(stderr, "mmc mount of %s failed: %s\n",
-                    location, strerror(errno));
-            result = strdup("");
-            goto done;
-        }
-        result = mount_point;
     } else {
-        if (mount(location, mount_point, type,
+        if (mount(location, mount_point, fs_type,
                   MS_NOATIME | MS_NODEV | MS_NODIRATIME, "") < 0) {
             fprintf(stderr, "%s: failed to mount %s at %s: %s\n",
                     name, location, mount_point, strerror(errno));
@@ -115,7 +109,8 @@ Value* MountFn(const char* name, State* state, int argc, Expr* argv[]) {
     }
 
 done:
-    free(type);
+    free(fs_type);
+    free(partition_type);
     free(location);
     if (result != mount_point) free(mount_point);
     return StringValue(result);
@@ -181,22 +176,29 @@ done:
 }
 
 
-// format(type, location)
+// format(fs_type, partition_type, location)
 //
-//    type="MTD"  location=partition
+//    fs_type="yaffs2" partition_type="MTD"     location=partition
+//    fs_type="ext4"   partition_type="EMMC"    location=device
 Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
-    if (argc != 2) {
-        return ErrorAbort(state, "%s() expects 2 args, got %d", name, argc);
+    if (argc != 3) {
+        return ErrorAbort(state, "%s() expects 3 args, got %d", name, argc);
     }
-    char* type;
+    char* fs_type;
+    char* partition_type;
     char* location;
-    if (ReadArgs(state, argv, 2, &type, &location) < 0) {
+    if (ReadArgs(state, argv, 3, &fs_type, &partition_type, &location) < 0) {
         return NULL;
     }
 
-    if (strlen(type) == 0) {
-        ErrorAbort(state, "type argument to %s() can't be empty", name);
+    if (strlen(fs_type) == 0) {
+        ErrorAbort(state, "fs_type argument to %s() can't be empty", name);
+        goto done;
+    }
+    if (strlen(partition_type) == 0) {
+        ErrorAbort(state, "partition_type argument to %s() can't be empty",
+                   name);
         goto done;
     }
     if (strlen(location) == 0) {
@@ -204,7 +206,7 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
         goto done;
     }
 
-    if (strcmp(type, "MTD") == 0) {
+    if (strcmp(partition_type, "MTD") == 0) {
         mtd_scan_partitions();
         const MtdPartition* mtd = mtd_find_partition_by_name(location);
         if (mtd == NULL) {
@@ -230,26 +232,45 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
             result = strdup("");
             goto done;
         }
-    } else if (strcmp(type, "MMC") == 0) {
-        mmc_scan_partitions();
-        const MmcPartition* mmc = mmc_find_partition_by_name(location);
-        if (mmc == NULL) {
-            fprintf(stderr, "%s: no mmc partition named \"%s\"",
-                    name, location);
+        result = location;
+#ifdef USE_EXT4
+    } else if (strcmp(fs_type, "ext4") == 0) {
+        reset_ext4fs_info();
+        int status = make_ext4fs(location, NULL, NULL, 0, 0, 0);
+        if (status != 0) {
+            fprintf(stderr, "%s: make_ext4fs failed (%d) on %s",
+                    name, status, location);
             result = strdup("");
             goto done;
         }
-        if (mmc_format_ext3(mmc))
-        {
+        result = location;
+#endif
+    } else if (strcmp(fs_type, "ext2") == 0) {
+        int status = format_ext2_device(location);
+        if (status != 0) {
+            fprintf(stderr, "%s: format_ext2_device failed (%d) on %s",
+                    name, status, location);
             result = strdup("");
             goto done;
         }
+        result = location;
+    } else if (strcmp(fs_type, "ext3") == 0) {
+        int status = format_ext3_device(location);
+        if (status != 0) {
+            fprintf(stderr, "%s: format_ext3_device failed (%d) on %s",
+                    name, status, location);
+            result = strdup("");
+            goto done;
+        }
+        result = location;
     } else {
-        fprintf(stderr, "%s: unsupported type \"%s\"", name, type);
+        fprintf(stderr, "%s: unsupported fs_type \"%s\" partition_type \"%s\"",
+                name, fs_type, partition_type);
     }
-    result = location;
+
 done:
-    free(type);
+    free(fs_type);
+    free(partition_type);
     if (result != location) free(location);
     return StringValue(result);
 }
@@ -660,8 +681,6 @@ static bool write_raw_image_cb(const unsigned char* data,
     return false;
 }
 
-int write_raw_image(const char* partition, const char* filename);
-
 // write_raw_image(file, partition)
 Value* WriteRawImageFn(const char* name, State* state, int argc, Expr* argv[]) {
     char* result = NULL;
@@ -681,80 +700,10 @@ Value* WriteRawImageFn(const char* name, State* state, int argc, Expr* argv[]) {
         goto done;
     }
 
-#ifdef BOARD_USES_BMLUTILS
-    if (0 == write_raw_image(name, filename)) {
-        result = partition;
-    }
-    result = strdup("Failure");
-#else
-    mtd_scan_partitions();
-    const MtdPartition* mtd = mtd_find_partition_by_name(partition);
-    if (mtd == NULL) {
-        fprintf(stderr, "%s: no mtd partition named \"%s\"\n", name, partition);
+    if (0 == restore_raw_partition(NULL, partition, filename))
+        result = strdup(partition);
+    else
         result = strdup("");
-        goto MMC;
-    }
-
-    MtdWriteContext* ctx = mtd_write_partition(mtd);
-    if (ctx == NULL) {
-        fprintf(stderr, "%s: can't write mtd partition \"%s\"\n",
-                name, partition);
-        result = strdup("");
-        goto done;
-    }
-
-    bool success;
-
-    FILE* f = fopen(filename, "rb");
-    if (f == NULL) {
-        fprintf(stderr, "%s: can't open %s: %s\n",
-                name, filename, strerror(errno));
-        result = strdup("");
-        goto done;
-    }
-
-    success = true;
-    char* buffer = malloc(BUFSIZ);
-    int read;
-    while (success && (read = fread(buffer, 1, BUFSIZ, f)) > 0) {
-        int wrote = mtd_write_data(ctx, buffer, read);
-        success = success && (wrote == read);
-        if (!success) {
-            fprintf(stderr, "mtd_write_data to %s failed: %s\n",
-                    partition, strerror(errno));
-        }
-    }
-    free(buffer);
-    fclose(f);
-
-    if (mtd_erase_blocks(ctx, -1) == -1) {
-        fprintf(stderr, "%s: error erasing blocks of %s\n", name, partition);
-    }
-    if (mtd_write_close(ctx) != 0) {
-        fprintf(stderr, "%s: error closing write of %s\n", name, partition);
-    }
-
-    printf("%s %s partition from %s\n",
-           success ? "wrote" : "failed to write", partition, filename);
-
-    result = success ? partition : strdup("");
-    goto done;
-
-MMC:
-    mmc_scan_partitions();
-    const MmcPartition* mmc = mmc_find_partition_by_name(partition);
-    if (mmc == NULL) {
-        fprintf(stderr, "%s: no mmc partition named \"%s\"\n", name, partition);
-        result = strdup("");
-        goto done;
-    }
-    if (mmc_raw_copy(mmc, filename)) {
-        fprintf(stderr, "%s: error erasing mmc partition named \"%s\"\n", name, partition);
-        result = strdup("");
-        goto done;
-    }
-    result = partition;
-#endif
 
 done:
     if (result != partition) free(partition);

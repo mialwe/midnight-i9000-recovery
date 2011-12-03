@@ -29,20 +29,27 @@
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
-#ifdef KEY_POWER_IS_SELECT_ITEM
+extern int __system(const char *command);
+
+#ifdef BOARD_HAS_NO_SELECT_BUTTON
 static int gShowBackButton = 1;
 #else
 static int gShowBackButton = 0;
 #endif
 
-#define MAX_COLS 64
-#define MAX_ROWS 32 
+#define MAX_COLS 96
+#define MAX_ROWS 32
 
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
 
-#define CHAR_WIDTH 10
-#define CHAR_HEIGHT 18
+#ifndef BOARD_LDPI_RECOVERY
+  #define CHAR_WIDTH 10
+  #define CHAR_HEIGHT 18
+#else
+  #define CHAR_WIDTH 7
+  #define CHAR_HEIGHT 16
+#endif
 
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15
@@ -53,10 +60,12 @@ static gr_surface gProgressBarIndeterminate[PROGRESSBAR_INDETERMINATE_STATES];
 static gr_surface gProgressBarEmpty;
 static gr_surface gProgressBarFill;
 static int ui_has_initialized = 0;
+static int ui_log_stdout = 1;
 
 static const struct { gr_surface* surface; const char *name; } BITMAPS[] = {
     { &gBackgroundIcon[BACKGROUND_ICON_INSTALLING], "icon_installing" },
     { &gBackgroundIcon[BACKGROUND_ICON_ERROR],      "icon_error" },
+    { &gBackgroundIcon[BACKGROUND_ICON_CLOCKWORK],  "icon_clockwork" },
     { &gProgressBarIndeterminate[0],    "indeterminate1" },
     { &gProgressBarIndeterminate[1],    "indeterminate2" },
     { &gProgressBarIndeterminate[2],    "indeterminate3" },
@@ -92,7 +101,7 @@ static int show_text = 0;
 static char menu[MENU_MAX_ROWS][MENU_MAX_COLS];
 static int show_menu = 0;
 static int menu_top = 0, menu_items = 0, menu_sel = 0;
-static int menu_show_start = 0;             // this is line which menu display is starting at 
+static int menu_show_start = 0;             // this is line which menu display is starting at
 
 // Key event input queue
 static pthread_mutex_t key_queue_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -159,7 +168,7 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
-#define MENU_TEXT_COLOR 7, 133, 74, 255
+#define MENU_TEXT_COLOR 255, 160, 49, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
@@ -454,7 +463,8 @@ void ui_print(const char *fmt, ...)
     vsnprintf(buf, 256, fmt, ap);
     va_end(ap);
 
-    fputs(buf, stderr);
+    if (ui_log_stdout)
+        fputs(buf, stdout);
 
     // This can get called before ui_init(), so be careful.
     pthread_mutex_lock(&gUpdateMutex);
@@ -475,6 +485,28 @@ void ui_print(const char *fmt, ...)
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
+void ui_printlogtail(int nb_lines) {
+    char * log_data;
+    char tmp[PATH_MAX];
+    FILE * f;
+    int line=0;
+    //don't log output to recovery.log
+    ui_log_stdout=0;
+    sprintf(tmp, "tail -n %d /tmp/recovery.log > /tmp/tail.log", nb_lines);
+    __system(tmp);
+    f = fopen("/tmp/tail.log", "rb");
+    if (f != NULL) {
+        while (line < nb_lines) {
+            log_data = fgets(tmp, PATH_MAX, f);
+            if (log_data == NULL) break;
+            ui_print("%s", tmp);
+            line++;
+        }
+        fclose(f);
+    }
+    ui_log_stdout=1;
+}
+
 void ui_reset_text_col()
 {
     pthread_mutex_lock(&gUpdateMutex);
@@ -485,12 +517,12 @@ void ui_reset_text_col()
 #define MENU_ITEM_HEADER " - "
 #define MENU_ITEM_HEADER_LENGTH strlen(MENU_ITEM_HEADER)
 
-int ui_start_menu(char** headers, char** items) {
+int ui_start_menu(char** headers, char** items, int initial_selection) {
     int i;
     pthread_mutex_lock(&gUpdateMutex);
     if (text_rows > 0 && text_cols > 0) {
         for (i = 0; i < text_rows; ++i) {
-            if (headers[i] == NULL) break; // add line separator here?
+            if (headers[i] == NULL) break;
             strncpy(menu[i], headers[i], text_cols-1);
             menu[i][text_cols-1] = '\0';
         }
@@ -509,7 +541,7 @@ int ui_start_menu(char** headers, char** items) {
 
         menu_items = i - menu_top;
         show_menu = 1;
-        menu_sel = menu_show_start = 0;
+        menu_sel = menu_show_start = initial_selection;
         update_screen_locked();
     }
     pthread_mutex_unlock(&gUpdateMutex);
@@ -562,6 +594,14 @@ int ui_text_visible()
     int visible = show_text;
     pthread_mutex_unlock(&gUpdateMutex);
     return visible;
+}
+
+void ui_show_text(int visible)
+{
+    pthread_mutex_lock(&gUpdateMutex);
+    show_text = visible;
+    update_screen_locked();
+    pthread_mutex_unlock(&gUpdateMutex);
 }
 
 int ui_wait_key()

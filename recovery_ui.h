@@ -74,7 +74,7 @@ int device_wipe_data();
 #define ITEM_NANDROID        5
 #define ITEM_PARTITION       6
 #define ITEM_ADVANCED        7
-#define ITEM_ADVANCED_LFS    8
+#define ITEM_POWEROFF        8          
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];
@@ -83,7 +83,7 @@ extern char* MENU_HEADERS[];
 extern char* MENU_ITEMS[];
 
 int
-get_menu_selection(char** headers, char** items, int menu_only);
+get_menu_selection(char** headers, char** items, int menu_only, int initial_selection);
 
 void
 set_sdcard_update_bootloader_message();

@@ -37,12 +37,23 @@ __system(const char *command);
 void
 show_advanced_menu();
 
-int
-format_non_mtd_device(const char* root);
+int format_unknown_device(const char *device, const char* path, const char *fs_type);
 
 void
 wipe_battery_stats();
 
 void create_fstab();
 
-void show_dir_contents(const char* dir);
+int has_datadata();
+
+void handle_failure(int ret);
+
+void process_volumes();
+
+int extendedcommand_file_exists();
+
+void show_install_update_menu();
+
+int confirm_selection(const char* title, const char* confirm);
+
+int run_and_remove_extendedcommand();

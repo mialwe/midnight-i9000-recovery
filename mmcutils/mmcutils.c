@@ -80,6 +80,10 @@ mmc_partition_name (MmcPartition *mbr, unsigned int type) {
             sprintf(name,"boot");
             mbr->name = strdup(name);
             break;
+        case MMC_RECOVERY_TYPE:
+            sprintf(name,"recovery");
+            mbr->name = strdup(name);
+            break;
         case MMC_EXT3_TYPE:
             if (strcmp("NONE", ext3_partitions[ext3_count])) {
                 strcpy((char *)name,(const char *)ext3_partitions[ext3_count]);
@@ -274,9 +278,30 @@ mmc_scan_partitions() {
     return g_mmc_state.partition_count;
 }
 
+static const MmcPartition *
+mmc_find_partition_by_device_index(const char *device_index)
+{
+    if (g_mmc_state.partitions != NULL) {
+        int i;
+        for (i = 0; i < g_mmc_state.partitions_allocd; i++) {
+            MmcPartition *p = &g_mmc_state.partitions[i];
+            if (p->device_index !=NULL && p->name != NULL) {
+                if (strcmp(p->device_index, device_index) == 0) {
+                    return p;
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
 const MmcPartition *
 mmc_find_partition_by_name(const char *name)
 {
+    if (name[0] == '/') {
+        return mmc_find_partition_by_device_index(name);
+    }
+
     if (g_mmc_state.partitions != NULL) {
         int i;
         for (i = 0; i < g_mmc_state.partitions_allocd; i++) {
@@ -291,11 +316,11 @@ mmc_find_partition_by_name(const char *name)
     return NULL;
 }
 
-#define MKE2FS_BIN      "/sbin/mke2fs_static"
-#define TUNE2FS_BIN     "/sbin/tune2fs_static"
-#define E2FSCK_BIN      "/sbin/e2fsck_static"
+#define MKE2FS_BIN      "/sbin/mke2fs"
+#define TUNE2FS_BIN     "/sbin/tune2fs"
+#define E2FSCK_BIN      "/sbin/e2fsck"
 
-static int
+int
 run_exec_process ( char **argv) {
     pid_t pid;
     int status;
@@ -314,11 +339,34 @@ run_exec_process ( char **argv) {
 }
 
 int
-mmc_format_ext3 (MmcPartition *partition) {
-    char device[128];
-    strcpy(device, partition->device_index);
-    // Run mke2fs
+format_ext3_device (const char *device) {
+#ifdef BOARD_HAS_LARGE_FILESYSTEM
+    char *const mke2fs[] = {MKE2FS_BIN, "-j", "-q", device, NULL};
+    char *const tune2fs[] = {TUNE2FS_BIN, "-C", "1", device, NULL};
+#else
     char *const mke2fs[] = {MKE2FS_BIN, "-j", device, NULL};
+    char *const tune2fs[] = {TUNE2FS_BIN, "-j", "-C", "1", device, NULL};
+#endif
+    // Run mke2fs
+    if(run_exec_process(mke2fs))
+        return -1;
+
+    // Run tune2fs
+    if(run_exec_process(tune2fs))
+        return -1;
+
+    // Run e2fsck
+    char *const e2fsck[] = {E2FSCK_BIN, "-fy", device, NULL};
+    if(run_exec_process(e2fsck))
+        return -1;
+
+    return 0;
+}
+
+int
+format_ext2_device (const char *device) {
+    // Run mke2fs
+    char *const mke2fs[] = {MKE2FS_BIN, device, NULL};
     if(run_exec_process(mke2fs))
         return -1;
 
@@ -333,6 +381,13 @@ mmc_format_ext3 (MmcPartition *partition) {
         return -1;
 
     return 0;
+}
+
+int
+mmc_format_ext3 (MmcPartition *partition) {
+    char device[128];
+    strcpy(device, partition->device_index);
+    return format_ext3_device(device);
 }
 
 int
@@ -413,3 +468,182 @@ ERROR3:
 
 }
 
+
+int
+mmc_raw_dump_internal (const char* in_file, const char *out_file) {
+    int ch;
+    FILE *in;
+    FILE *out;
+    int val = 0;
+    char buf[512];
+    unsigned sz = 0;
+    unsigned i;
+    int ret = -1;
+
+    in  = fopen ( in_file,  "r" );
+    if (in == NULL)
+        goto ERROR3;
+
+    out = fopen ( out_file,  "w" );
+    if (out == NULL)
+        goto ERROR2;
+
+    fseek(in, 0L, SEEK_END);
+    sz = ftell(in);
+    fseek(in, 0L, SEEK_SET);
+
+    if (sz % 512)
+    {
+        while ( ( ch = fgetc ( in ) ) != EOF )
+            fputc ( ch, out );
+    }
+    else
+    {
+        for (i=0; i< (sz/512); i++)
+        {
+            if ((fread(buf, 512, 1, in)) != 1)
+                goto ERROR1;
+            if ((fwrite(buf, 512, 1, out)) != 1)
+                goto ERROR1;
+        }
+    }
+
+    fsync(out);
+    ret = 0;
+ERROR1:
+    fclose ( out );
+ERROR2:
+    fclose ( in );
+ERROR3:
+    return ret;
+
+}
+
+// TODO: refactor this to not be a giant copy paste mess
+int
+mmc_raw_dump (const MmcPartition *partition, char *out_file) {
+    return mmc_raw_dump_internal(partition->device_index, out_file);
+}
+
+
+int
+mmc_raw_read (const MmcPartition *partition, char *data, int data_size) {
+    int ch;
+    FILE *in;
+    int val = 0;
+    char buf[512];
+    unsigned sz = 0;
+    unsigned i;
+    int ret = -1;
+    char *in_file = partition->device_index;
+
+    in  = fopen ( in_file,  "r" );
+    if (in == NULL)
+        goto ERROR3;
+
+    fseek(in, 0L, SEEK_END);
+    sz = ftell(in);
+    fseek(in, 0L, SEEK_SET);
+
+    fread(data, data_size, 1, in);
+
+    ret = 0;
+ERROR1:
+ERROR2:
+    fclose ( in );
+ERROR3:
+    return ret;
+
+}
+
+int
+mmc_raw_write (const MmcPartition *partition, char *data, int data_size) {
+    int ch;
+    FILE *out;
+    int val = 0;
+    char buf[512];
+    unsigned sz = 0;
+    unsigned i;
+    int ret = -1;
+    char *out_file = partition->device_index;
+
+    out  = fopen ( out_file,  "w" );
+    if (out == NULL)
+        goto ERROR3;
+
+    fwrite(data, data_size, 1, out);
+
+    ret = 0;
+ERROR1:
+ERROR2:
+    fclose ( out );
+ERROR3:
+    return ret;
+
+}
+
+int cmd_mmc_restore_raw_partition(const char *partition, const char *filename)
+{
+    if (partition[0] != '/') {
+        mmc_scan_partitions();
+        const MmcPartition *p;
+        p = mmc_find_partition_by_name(partition);
+        if (p == NULL)
+            return -1;
+        return mmc_raw_copy(p, filename);
+    }
+    else {
+        return mmc_raw_dump_internal(filename, partition);
+    }
+}
+
+int cmd_mmc_backup_raw_partition(const char *partition, const char *filename)
+{
+    if (partition[0] != '/') {
+        mmc_scan_partitions();
+        const MmcPartition *p;
+        p = mmc_find_partition_by_name(partition);
+        if (p == NULL)
+            return -1;
+        return mmc_raw_dump(p, filename);
+    }
+    else {
+        return mmc_raw_dump_internal(partition, filename);
+    }
+}
+
+int cmd_mmc_erase_raw_partition(const char *partition)
+{
+    return 0;
+}
+
+int cmd_mmc_erase_partition(const char *partition, const char *filesystem)
+{
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+    return mmc_format_ext3 (p);
+}
+
+int cmd_mmc_mount_partition(const char *partition, const char *mount_point, const char *filesystem, int read_only)
+{
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+    return mmc_mount_partition(p, mount_point, read_only);
+}
+
+int cmd_mmc_get_partition_device(const char *partition, char *device)
+{
+    mmc_scan_partitions();
+    const MmcPartition *p;
+    p = mmc_find_partition_by_name(partition);
+    if (p == NULL)
+        return -1;
+    strcpy(device, p->device_index);
+    return 0;
+}

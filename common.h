@@ -26,12 +26,14 @@ void ui_init();
 int ui_wait_key();            // waits for a key/button press, returns the code
 int ui_key_pressed(int key);  // returns >0 if the code is currently pressed
 int ui_text_visible();        // returns >0 if text log is currently visible
+void ui_show_text(int visible);
 void ui_clear_key_queue();
 
 // Write a message to the on-screen log shown with Alt-L (also to stderr).
 // The screen is small, and users may need to report these messages to support,
 // so keep the output short and not too cryptic.
-void ui_print(const char *fmt, ...);
+void ui_print(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void ui_printlogtail(int nb_lines);
 
 void ui_reset_text_col();
 void ui_set_show_text(int value);
@@ -39,7 +41,7 @@ void ui_set_show_text(int value);
 // Display some header text followed by a menu of items, which appears
 // at the top of the screen (in place of any scrolling ui_print()
 // output, if necessary).
-int ui_start_menu(char** headers, char** items);
+int ui_start_menu(char** headers, char** items, int initial_selection);
 // Set the menu highlight to the given index, and return it (capped to
 // the range [0..numitems).
 int ui_menu_select(int sel);
@@ -55,6 +57,7 @@ enum {
   BACKGROUND_ICON_NONE,
   BACKGROUND_ICON_INSTALLING,
   BACKGROUND_ICON_ERROR,
+  BACKGROUND_ICON_CLOCKWORK,
   BACKGROUND_ICON_FIRMWARE_INSTALLING,
   BACKGROUND_ICON_FIRMWARE_ERROR,
   NUM_BACKGROUND_ICONS
@@ -85,12 +88,12 @@ void ui_show_indeterminate_progress();
 void ui_reset_progress();
 
 #define LOGE(...) ui_print("E:" __VA_ARGS__)
-#define LOGW(...) fprintf(stderr, "W:" __VA_ARGS__)
-#define LOGI(...) fprintf(stderr, "I:" __VA_ARGS__)
+#define LOGW(...) fprintf(stdout, "W:" __VA_ARGS__)
+#define LOGI(...) fprintf(stdout, "I:" __VA_ARGS__)
 
 #if 0
-#define LOGV(...) fprintf(stderr, "V:" __VA_ARGS__)
-#define LOGD(...) fprintf(stderr, "D:" __VA_ARGS__)
+#define LOGV(...) fprintf(stdout, "V:" __VA_ARGS__)
+#define LOGD(...) fprintf(stdout, "D:" __VA_ARGS__)
 #else
 #define LOGV(...) do {} while (0)
 #define LOGD(...) do {} while (0)
@@ -98,5 +101,23 @@ void ui_reset_progress();
 
 #define STRINGIFY(x) #x
 #define EXPAND(x) STRINGIFY(x)
+
+typedef struct {
+    const char* mount_point;  // eg. "/cache".  must live in the root directory.
+
+    const char* fs_type;      // "yaffs2" or "ext4" or "vfat"
+
+    const char* device;       // MTD partition name if fs_type == "yaffs"
+                              // block device if fs_type == "ext4" or "vfat"
+
+    const char* device2;      // alternative device to try if fs_type
+                              // == "ext4" or "vfat" and mounting
+                              // 'device' fails
+    const char* fs_type2;
+
+    const char* fs_options;
+
+    const char* fs_options2;
+} Volume;
 
 #endif  // RECOVERY_COMMON_H

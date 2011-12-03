@@ -64,6 +64,7 @@ void ui_print(const char* fmt, ...) {
     va_start(ap, fmt);
     vsnprintf(buf, 256, fmt, ap);
     va_end(ap);
+
     fputs(buf, stderr);
 }
 
