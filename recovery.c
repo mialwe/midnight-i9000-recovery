@@ -39,11 +39,13 @@
 #include "minui/minui.h"
 #include "minzip/DirUtil.h"
 #include "roots.h"
+#include "mounts.h"
 #include "recovery_ui.h"
 #include "encryptedfs_provisioning.h"
 
 #include "extendedcommands.h"
 #include "flashutils/flashutils.h"
+#include "midnight.h"
 
 static const struct option OPTIONS[] = {
   { "send_intent", required_argument, NULL, 's' },
@@ -323,7 +325,7 @@ static int
 erase_volume(const char *volume) {
     ui_set_background(BACKGROUND_ICON_INSTALLING);
     ui_show_indeterminate_progress();
-    ui_print("Formatting %s...\n", volume);
+    ui_print("Erasing %s...\n", volume);
 
     if (strcmp(volume, "/cache") == 0) {
         // Any part of the log we'd copied to cache is now gone.
@@ -427,7 +429,7 @@ copy_sideloaded_package(const char* original_path) {
 
 static char**
 prepend_title(char** headers) {
-    char* title[] = { EXPAND(RECOVERY_VERSION),
+    char* title[] = { "MIDNIGHT KERNEL / CWM4 BASED RECOVERY",      //EXPAND(RECOVERY_VERSION),
                       "",
                       NULL };
 
@@ -677,17 +679,640 @@ wipe_data(int confirm) {
         }
     }
 
-    ui_print("\n-- Wiping data...\n");
+    ui_print("\nWiping data...\n");
     device_wipe_data();
     erase_volume("/data");
     erase_volume("/cache");
     if (has_datadata()) {
         erase_volume("/datadata");
     }
-    erase_volume("/sd-ext");
+    // Midnight: skip sd-ext on stock Samsung ROM
+    //erase_volume("/sd-ext");
     erase_volume("/sdcard/.android_secure");
     ui_print("Data wipe complete.\n");
 }
+
+
+
+void backup_menu(){
+/*
+ * Nandroid FULL
+ * Nandroid DATA
+ * Nandroid SYSTEM
+ * ANIM
+ * SOUNDS
+ * MIDNIGHTCONF
+ */
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data"); 
+    create_backup_dirs();
+    static char* headers[] = {  "BACKUP MENU",
+                                "Perform a Nandroid backup or backup your chosen" 
+                                "files to /data/midnight/backup.",
+                                NULL};
+    static char* list[] = { "Nandroid backup FULL",
+                            "Nandroid backup SYSTEM",
+                            "Nandroid backup DATA",
+                            "Backup custom bootanimations",
+                            "Backup start/shutdown sounds",
+                            "Backup Midnight configfiles",
+                            "Backup SystemUI / framework-res",
+                            NULL
+    };
+    
+    
+
+    char backup_path[PATH_MAX];
+    
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;        
+        switch (chosen_item)
+        {
+          case 0:
+                backup_path[0]='\0';nandroid_generate_timestamp_path(backup_path);
+                sprintf(backup_path,"%s-FULL",backup_path);
+                nandroid_backup(backup_path);
+                break;
+          case 1:
+                backup_path[0]='\0';nandroid_generate_timestamp_path(backup_path);
+                sprintf(backup_path,"%s-SYSTEM",backup_path);
+                nandroid_backup_selective(backup_path,1); // system
+                break;        
+          case 2:
+                backup_path[0]='\0';nandroid_generate_timestamp_path(backup_path);
+                sprintf(backup_path,"%s-DATA",backup_path);
+                nandroid_backup_selective(backup_path,2); // data / datadata
+                break;              
+          case 3:
+          {
+            if (confirm_selection("Confirm backup custom bootanimations","Yes - backup custom bootanimations")) {  
+            ensure_path_mounted("/system");
+            ensure_path_mounted("/data");
+              ui_print("\nSearching bootanimations......\n");
+              if( show_file_exists("Original","/data/local/bootanimation.zip","bootanimation.zip (data):","found.", "not found.") ||
+                show_file_exists("Original","/data/local/sanim.zip","sanim.zip (data):","found.", "not found.") ||
+                show_file_exists("Original","/data/local/bootanimation.bin","bootanimation.bin (data):","found.", "not found.") ||
+                show_file_exists("Original","/system/media/bootanimation.zip","bootanimation.zip (system):","found.", "not found.") ||
+                show_file_exists("Original","/system/media/sanim.zip","sanim.zip (system):","found.", "not found.") ){
+                    ui_print("Cleaning backup directories...\n");
+                    __system("rm -r /data/midnight/backups/bootanimation/local/*");                
+                    __system("rm -r /data/midnight/backups/bootanimation/system/*");                
+                    ui_print("Backup bootanimations...\n");
+                    ui_print("Backup to /data/midnight/backups/...\n");
+                    __system("cp /data/local/bootanimation.zip /data/midnight/backups/bootanimation/local");                
+                    __system("cp /data/local/sanim.zip /data/midnight/backups/bootanimation/local");                
+                    __system("cp /data/local/bootanimation.bin /data/midnight/backups/bootanimation/local");                
+                    __system("cp /system/media/bootanimation.zip /data/midnight/backups/bootanimation/system");                
+                    __system("cp /system/media/sanim.zip /data/midnight/backups/bootanimation/system");                
+                    ui_print("Done.\n");
+                }
+            }
+            break;
+          }
+          case 4:
+                {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm backup start/shutdown sounds","Yes - backup start/shutdown sounds")) {  
+                        ui_print("\nSearching sounds...\n");
+                        if( show_file_exists("Original","/system/etc/PowerOn.snd","PowerOn.snd:","found.", "not found.") ||
+                        show_file_exists("Original","/system/etc/PowerOn.wav","PowerOn.wav:","found.", "not found.") ||
+                        show_file_exists("Original","/system/media/audio/ui/shutdown.ogg","shutdown.ogg:","found.", "not found.")){
+                            ui_print("Cleaning backup directory...\n");
+                            __system("rm -r /data/midnight/backups/sounds/*");                
+                            ui_print("Backup to /data/midnight/backups/sounds...\n");
+                            ui_print("Backup sounds...\n");
+                            __system("cp /system/etc/PowerOn.snd /data/midnight/backups/sounds");                
+                            __system("cp /system/etc/PowerOn.wav /data/midnight/backups/sounds");                
+                            __system("cp /system/media/audio/ui/shutdown.ogg /data/midnight/backups/sounds");                
+                            ui_print("Done.\n");
+                        }
+                    }
+                    break;
+                  }
+          case 5:
+                  {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm backup Midnight conf files","Yes - backup Midnight config files")) {  
+                      ui_print("\nCleaning backup directory...\n");
+                      __system("rm -r /data/midnight/backups/midnight-conf/*");                                      
+                      ui_print("Backup to /data/midnight/backups/midnight-conf...\n");
+                      ui_print("Backup Midnight configfiles...\n");
+                      __system("cp /system/etc/midnight_*.conf /data/midnight/backups/midnight-conf");
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 6:
+                  {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm backup SystemUI/framework-res","Yes - backup theme files")) {  
+                        ui_print("\nSearching for files...\n");
+                        if( show_file_exists("Original","/system/app/SystemUI.apk","SystemUI.apk:","found.", "not found.") &&
+                        show_file_exists("Original","/system/framework/framework-res.apk","framework-res.apk:","found.", "not found.")){ 
+                          show_file_exists("Original","/system/app/SystemUI.odex","SystemUI.odex:","found.", "not found.");                         
+                          ui_print("\nCleaning backup directory...\n");
+                          __system("rm -r /data/midnight/backups/theme/*");                                      
+                          ui_print("Backup to /data/midnight/backups/theme...\n");
+                          ui_print("Backup theme files...\n");
+                          __system("cp /system/app/SystemUI.apk /data/midnight/backups/theme");
+                          __system("cp /system/app/SystemUI.odex /data/midnight/backups/theme");
+                          __system("cp /system/framework/framework-res.apk /data/midnight/backups/theme");
+                          ui_print("Done.\n");
+                        }
+                    }
+                    break;
+                  }
+
+        }
+    }
+}
+
+void restore_menu(){
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+    create_backup_dirs();
+    static char* headers[] = {  "RESTORE MENU",
+                                "Restore Nandroid backup or your chosen" 
+                                "files.",
+                                NULL};
+    static char* list[] = { "Nandroid restore FULL",
+                            "Nandroid restore SYSTEM",
+                            "Nandroid restore DATA",
+                            "Nandroid restore selected file",
+                            "Restore custom bootanimations",
+                            "Restore start/shutdown sounds",
+                            "Restore Midnight configfiles",
+                            "Restore SystemUI / framework-res",
+                            NULL
+    };
+    
+    // generate backup_path
+    char backup_path[PATH_MAX];
+    time_t t = time(NULL);
+    struct tm *tmp = localtime(&t);
+    if (tmp == NULL)
+    {
+        struct timeval tp;
+        gettimeofday(&tp, NULL);
+        sprintf(backup_path, "/sdcard/clockworkmod/backup/%d", tp.tv_sec);
+    }
+    else
+    {
+        strftime(backup_path, sizeof(backup_path), "/sdcard/clockworkmod/backup/%F.%H.%M.%S", tmp);
+    }
+
+
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;        
+        switch (chosen_item)
+        {
+         case 0:
+            show_nandroid_restore_delete_menu(0);
+            break;
+        case 1:
+            show_nandroid_advanced_restore_menu(1);
+            break;
+        case 2:
+            show_nandroid_advanced_restore_menu(2);
+            break;
+        case 3:
+            show_nandroid_advanced_restore_menu(0);
+            break; 
+          case 4:
+          {
+              {
+                ensure_path_mounted("/system");
+                ensure_path_mounted("/data");
+                if (confirm_selection("Confirm restoring custom bootanimations","Yes - restore bootanimations")) {  
+                  ui_print("\nRestoring bootanimations...\n");
+                  __system("cp /data/midnight/backups/bootanimation/local/bootanimation.zip /data/local");                
+                  __system("cp /data/midnight/backups/bootanimation/local/sanim.zip /data/local");                
+                  __system("cp /data/midnight/backups/bootanimation/local/bootanimation.bin /data/local");                
+                  __system("cp /data/midnight/backups/bootanimation/system/bootanimation.zip /system/media");                
+                  __system("cp /data/midnight/backups/bootanimation/system/sanim.zip /system/media");                
+                  ui_print("Done.\n");
+                }
+                break;
+              }
+          }
+          case 5:
+                {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm restoring boot/shutdown sounds","Yes - restore sounds")) {  
+                      ui_print("\nRestoring sounds...\n");
+                      __system("cp /data/midnight/backups/sounds/PowerOn.snd /system/etc");                
+                      __system("cp /data/midnight/backups/sounds/PowerOn.wav /system/etc");                
+                      __system("cp /data/midnight/backups/sounds/shutdown.ogg /system/media/audio/ui");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 6:
+                  {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm restoring Midnight config files","Yes - restore Midnight config files")) {  
+                      ui_print("\nCleaning configfiles...\n");
+                      __system("rm /system/etc/midnight_*.conf");
+                      ui_print("Restoring configfiles...\n");
+                      __system("cp /data/midnight/backups/midnight-conf/midnight_*.conf /system/etc");
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 7:
+                  {
+                    ensure_path_mounted("/system");
+                    ensure_path_mounted("/data");
+                    if (confirm_selection("Confirm restoring SystemUI/framework-res","Yes - restore theme files")) {  
+                        ui_print("\nSearching for theme files...\n");
+                        if( show_file_exists("Backup","/data/midnight/backups/theme/SystemUI.apk","SystemUI.apk:","found.", "not found.") &&
+                        show_file_exists("Backup","/data/midnight/backups/theme/framework-res.apk","framework-res.apk:","found.", "not found.")){  
+                        show_file_exists("Backup","/data/midnight/backups/theme/SystemUI.odex","SystemUI.odex:","found.", "not found.");    
+                        if((
+                            0 == file_exists("/data/midnight/backups/theme/SystemUI.odex") && 
+                            0 != file_exists("/system/app/SystemUI.odex")) ||
+                            (
+                            0 != file_exists("/data/midnight/backups/theme/SystemUI.odex") && 
+                            0 == file_exists("/system/app/SystemUI.odex"))                            
+                            ){
+                                ui_print("Odexed/deodexed mismatch, exiting...\n");
+                                return; 
+                            }
+                          ui_print("\nRestoring theme files...\n");
+                          __system("cp /data/midnight/backups/theme/SystemUI.apk /system/app");
+                          __system("cp /data/midnight/backups/theme/SystemUI.odex /system/app");
+                          __system("cp /data/midnight/backups/theme/framework-res.apk /system/framework");
+                          ui_print("Done.\n");
+                        }
+                    }
+                    break;
+                  }
+
+        }
+    }
+}
+
+void rm_bloat(const char *filename){
+    char tmp[PATH_MAX];
+    sprintf(tmp,"rm /system/app/%s.apk",filename);
+    if(0 == __system(tmp)){
+        ui_print("Deleted: %s.apk\n",filename);
+        LOGI("Deleted: %s.apk",filename);
+    }else{
+        ui_print("Failed: %s.apk\n",filename);
+        LOGI("Failed: %s.apk",filename);
+        }
+    sprintf(tmp,"rm /system/app/%s.odex",filename);
+    if(0 == __system(tmp)){
+        ui_print("Deleted: %s.odex\n",filename);
+        LOGI("Deleted: %s.odex",filename);
+    }else{
+        ui_print("Failed: %s.odex\n",filename);
+        LOGI("Failed: %s.odex",filename);
+        }
+}
+
+void cleanup_menu(){
+    create_backup_dirs();
+    static char* headers[] = {  "CLEANUP / WIPE MENU",
+                                "Cleanup or wipe whatever you want." 
+                                "Be sure to have a backup if necessary.",
+                                NULL};
+    static char* list[] = { "Wipe cache...",
+                            "Wipe dalvik-cache...",
+                            "Wipe battery stats...",
+                            "Factory reset...",
+                            "Delete Nandroid backup",
+                            "Delete custom bootanimations",
+                            "Delete start/shutdown sounds",
+                            "Delete Midnight configfiles",
+                            "Delete bloatware (~19Mb)",
+                            "Delete some Google apps (~0.8Mb)",
+                            "Delete SamsungApps (~3Mb)",
+                            "Delete Facebook/Twitter sync (~0.7Mb)",
+                            "Delete some fonts (~3Mb)",
+                            "Delete Samsung Widgets (~3.7Mb)",
+                            "Delete MIALWE preset (~59Mb)",
+                            NULL
+    };
+    
+    ensure_path_mounted("/system");
+    ensure_path_mounted("/data");
+      
+    ui_print("\nBloatware/cleanup info\n");
+    ui_print("------------------\n");
+    ui_print("The last 7 delete options (bloatware,...)\n");
+    ui_print("will give you a list of all packages to be\n");
+    ui_print("deleted from /system in case you confirm.\n");
+    ui_print("------------------\n");
+    
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;        
+        switch (chosen_item)
+        {
+              case 0:
+              {
+                if (confirm_selection("Confirm wipe?", "Yes - wipe cache"))
+                {
+                    ui_print("\nWiping cache...\n");
+                    erase_volume("/cache");
+                    ui_print("Cache wipe complete.\n");
+                    if (!ui_text_visible()) return;
+                }
+                break;                  
+              }
+              case 1:
+              {
+                if (0 != ensure_path_mounted("/data"))
+                    break;
+                if (confirm_selection( "Confirm wipe?", "Yes - Wipe dalvik-cache")) {
+                    // Midnight: clear cache and data in any case
+                    ensure_path_mounted("/cache");
+                    ui_print("\nWiping /data/dalvik-cache...\n");
+                    __system("rm -r /data/dalvik-cache");
+                    ui_print("Wiping /cache/dalvik-cache...\n");
+                    __system("rm -r /cache/dalvik-cache");
+                    ui_print("Dalvik cache wiped.\n");
+                    /*
+                     * MIDNIGHT: No sd-ext on stock Samsung ROM
+                     */
+                    //ensure_path_mounted("/sd-ext");
+                    //__system("rm -r /sd-ext/dalvik-cache");
+                }
+                ensure_path_unmounted("/data");
+                break;                  
+              }
+              case 2:
+              {
+               if (confirm_selection( "Confirm wipe?", "Yes - wipe battery stats"))
+                    ui_print("\nWiping battery stats...");
+                    wipe_battery_stats();
+                    /*
+                     * MIDNIGHT: Give proper feedback
+                     */
+                    ui_print("Battery stats wiped.\n");
+                break;
+              }
+              case 3:
+              {
+                wipe_data(ui_text_visible());
+                if (!ui_text_visible()) return;
+                break;                  
+              }            
+         case 4:
+            show_nandroid_restore_delete_menu(1);
+            break;
+          case 5:
+          {
+                   if (confirm_selection("Confirm deleting custom bootanimations","Yes - delete custom bootanimations")) {  
+                        ensure_path_mounted("/system");
+                        ensure_path_mounted("/data");
+                      ui_print("\nDeleting bootanimations...\n");
+                      __system("rm -f /data/local/bootanimation.zip");                
+                      __system("rm -f /data/local/sanim.zip");                
+                      __system("rm -f /data/local/bootanimation.bin");                
+                      __system("rm -f /system/media/bootanimation.zip");                
+                      __system("rm -f /system/media/sanim.zip");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+          }
+          case 6:
+                {
+                        ensure_path_mounted("/system");
+                    if (confirm_selection("Confirm deleting start/shutdown sounds","Yes - delete start/shutdown sounds")) {  
+                      ui_print("\nDeleting startup/shutdown sounds...\n");
+                      __system("rm -f /system/etc/PowerOn.snd");                
+                      __system("rm -f /system/etc/PowerOn.wav");                
+                      __system("rm -f /system/media/audio/ui/shutdown.ogg");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 7:
+                  {
+                   if (confirm_selection("Confirm deleting Midnight conf files","Yes - delete ALL Midnight config files")) {  
+                        ensure_path_mounted("/system");
+                      ui_print("\nDeleting /system/etc/midnight_*.conf...\n");
+                      __system("rm -rf /system/etc/midnight_*.conf");                
+                      ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 8:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("BuddiesNow, Days, Layar-samsung, Memo,\n");
+                    ui_print("MiniDiary, PressReader, WriteandGo\n");
+                    ui_print("aldiko-standard, thinkdroid, Protips\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system bloatware","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system bloatware...\n");
+                        rm_bloat("BuddiesNow");
+                        rm_bloat("Days");
+                        rm_bloat("Layar-samsung");
+                        rm_bloat("Memo");
+                        rm_bloat("MiniDiary");
+                        rm_bloat("PressReader");
+                        rm_bloat("WriteandGo");
+                        rm_bloat("aldiko-standard-1.2.6.1-samsung-s1");
+                        rm_bloat("thinkdroid");
+                        rm_bloat("Protips");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 9:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("GoogleFeedback, GooglePartnerSetup,\n");
+                    ui_print("GoogleQuickSearchBox\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting some /system GoogleApps","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system GoogleApps...\n");
+                        rm_bloat("GoogleFeedback");
+                        rm_bloat("GooglePartnerSetup");
+                        rm_bloat("GoogleQuickSearchBox");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 10:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("SamsungApps, SamsungAppsUNAService\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system SamsungApps","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system SamsungApps...\n");
+                        rm_bloat("SamsungApps");
+                        rm_bloat("SamsungAppsUNAService");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 11:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("SnsAccount, SnsProvider\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system Facebook/Twitter sync","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system Facebook/Twitter sync apps...\n");
+                        rm_bloat("SnsAccount");
+                        rm_bloat("SnsProvider");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 12:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("ChocoEUKor, CoolEUKor, RoseEUKor\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system fonts","Yes - delete some fonts")) {  
+                        ui_print("\nDeleting /system fonts...\n");
+                        rm_bloat("ChocoEUKor");
+                        rm_bloat("CoolEUKor");
+                        rm_bloat("RoseEUKor");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 13:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("SamsungWidget_CalendarClock\n");
+                    ui_print("SamsungWidget_FeedAndUpdate\n");
+                    ui_print("SamsungWidget_ProgramMonitor\n");
+                    ui_print("SamsungWidget_StockClock\n");
+                    ui_print("DualClock\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system Samsung Widgets","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system Samsung widgets...\n");
+                        rm_bloat("SamsungWidget_CalendarClock");
+                        rm_bloat("SamsungWidget_FeedAndUpdate");
+                        rm_bloat("SamsungWidget_ProgramMonitor");
+                        rm_bloat("SamsungWidget_StockClock");
+                        rm_bloat("DualClock");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+
+          case 14:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+
+                    ui_print("aldiko-standard-1.2.6.1-samsung-s1,");
+                    ui_print("AngryGPS, BuddiesNow, ChocoEUKor,");
+                    ui_print("CoolEUKor, Days, DualClock, Gallery3D,");
+                    ui_print("GoogleBackupTransport, GoogleFeedback,");
+                    ui_print("GooglePartnerSetup, GoogleQuickSearchBox,");
+                    ui_print("HTMLViewer, InfoAlarm, LiveWallpapers,");
+                    ui_print("LiveWallpapersPicker, Memo, MiniDiary,");
+                    ui_print("MobileTrackerEngineTwo, MobileTrackerUI,");
+                    ui_print("MtpApplication, MyFiles, NetworkLocation,");
+                    ui_print("PicoTts, PressReader, Protips,");
+                    ui_print("RoseEUKor, SamsungApps,");
+                    ui_print("SamsungWidget_CalendarClock,");
+                    ui_print("SamsungWidget_FeedAndUpdate,");
+                    ui_print("SamsungWidget_ProgramMonitor,");
+                    ui_print("SamsungWidget_StockClock,");
+                    ui_print("SnsAccount, SnsProvider, Street,");
+                    ui_print("Swype, thinkdroid, TwWallpaperChooser,");
+                    ui_print("VideoPlayer, VisualizationWallpapers,");
+                    ui_print("VoiceDialer, VoiceRecorder,");
+                    ui_print("VoiceSearch, WriteandGo,");
+ 
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system MIALWE preset","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting /system MIALWE preset...\n");
+                        rm_bloat("aldiko-standard-1.2.6.1-samsung-s1");
+                        rm_bloat("AngryGPS");
+                        rm_bloat("BuddiesNow");
+                        rm_bloat("ChocoEUKor");
+                        rm_bloat("CoolEUKor");
+                        rm_bloat("Days");
+                        rm_bloat("DualClock");
+                        rm_bloat("Gallery3D");
+                        rm_bloat("GoogleBackupTransport");
+                        rm_bloat("GoogleFeedback");
+                        rm_bloat("GooglePartnerSetup");
+                        rm_bloat("GoogleQuickSearchBox");
+                        rm_bloat("HTMLViewer");
+                        rm_bloat("InfoAlarm");
+                        rm_bloat("LiveWallpapers");
+                        rm_bloat("LiveWallpapersPicker");
+                        rm_bloat("Memo");
+                        rm_bloat("MiniDiary");
+                        rm_bloat("MobileTrackerEngineTwo");
+                        rm_bloat("MobileTrackerUI");
+                        rm_bloat("MtpApplication");
+                        rm_bloat("MyFiles");
+                        rm_bloat("NetworkLocation");
+                        rm_bloat("PicoTts");
+                        rm_bloat("PressReader");
+                        rm_bloat("Protips");
+                        rm_bloat("RoseEUKor");
+                        rm_bloat("SamsungApps");
+                        rm_bloat("SamsungWidget_CalendarClock");
+                        rm_bloat("SamsungWidget_FeedAndUpdate");
+                        rm_bloat("SamsungWidget_ProgramMonitor");
+                        rm_bloat("SamsungWidget_StockClock");
+                        rm_bloat("SnsAccount");
+                        rm_bloat("SnsProvider");
+                        rm_bloat("Street");
+                        rm_bloat("Swype");
+                        rm_bloat("thinkdroid");
+                        rm_bloat("TwWallpaperChooser");
+                        rm_bloat("VideoPlayer");
+                        rm_bloat("VisualizationWallpapers");
+                        rm_bloat("VoiceDialer");
+                        rm_bloat("VoiceRecorder");
+                        rm_bloat("VoiceSearch");
+                        rm_bloat("WriteandGo");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+        }
+    }
+}
+
 
 static void
 prompt_and_wait() {
@@ -711,6 +1336,24 @@ prompt_and_wait() {
                 poweroff=0;
                 return;
 
+            case ITEM_REBOOT_RECOVERY:
+                poweroff=0;
+                reboot_wrapper("recovery");
+                return;
+
+            case ITEM_REBOOT_DOWNLOAD:
+                poweroff=0;
+                reboot_wrapper("download");
+                return;
+            case ITEM_POWEROFF:
+                poweroff=1;
+                return;
+            /*
+             * MIDNIGHT:
+             * - WIPE_DATA moved to cleanup menu
+             * - WIPE_CACHE moved to cleanup menu
+             * - APPLY_UPDATE temporarily disabled
+             *                 
             case ITEM_WIPE_DATA:
                 wipe_data(ui_text_visible());
                 if (!ui_text_visible()) return;
@@ -741,21 +1384,35 @@ prompt_and_wait() {
                     }
                 }
                 break;
+            */
+            case ITEM_PARTITION:
+                show_partition_menu();
+                break;
             case ITEM_INSTALL_ZIP:
                 show_install_update_menu();
                 break;
-            case ITEM_NANDROID:
-                show_nandroid_menu();
+            case ITEM_BACKUP:
+                backup_menu();
                 break;
-            case ITEM_PARTITION:
-                show_partition_menu();
+            case ITEM_CLEANUP:
+                cleanup_menu();
+                break;
+            case ITEM_RESTORE:
+                restore_menu();
+                break;                
+            case ITEM_ROOT:
+               show_root_menu();
                 break;
             case ITEM_ADVANCED:
                 show_advanced_menu();
                 break;
-            case ITEM_POWEROFF:
-                poweroff=1;
-                return;
+            /*
+             * MIDNIGHT: Advanced menu temporarily disabled
+             * 
+            case ITEM_ADVANCED:
+                show_advanced_menu();
+                break;
+            */
         }
     }
 }
@@ -768,8 +1425,14 @@ print_property(const char *key, const char *name, void *cookie) {
 int
 main(int argc, char **argv) {
 	if (strstr(argv[0], "recovery") == NULL)
-	{
-	    if (strstr(argv[0], "flash_image") != NULL)
+	{   
+    // DEBUG OUTPUT
+    //int i;
+    //printf("call = ");
+    //for (i = 0; i < argc; i++)
+    //    printf("\"%s\"\n",argv[i]);
+    //printf("\n");    
+        if (strstr(argv[0], "flash_image") != NULL)
 	        return flash_image_main(argc, argv);
 	    if (strstr(argv[0], "volume") != NULL)
 	        return volume_main(argc, argv);
@@ -782,11 +1445,18 @@ main(int argc, char **argv) {
 	    if (strstr(argv[0], "mkyaffs2image") != NULL)
 	        return mkyaffs2image_main(argc, argv);
 	    if (strstr(argv[0], "unyaffs") != NULL)
-	        return unyaffs_main(argc, argv);
+	        return unyaffs_main(argc, argv);           
         if (strstr(argv[0], "nandroid"))
-            return nandroid_main(argc, argv);
+            return nandroid_main(argc, argv);                                
         if (strstr(argv[0], "reboot"))
             return reboot_main(argc, argv);
+#ifdef BOARD_RECOVERY_HANDLES_MOUNT
+        if (strstr(argv[0], "mount") && argc == 2 && !strstr(argv[0], "umount"))
+        {
+            load_volume_table();
+            return ensure_path_mounted(argv[1]);
+        }
+#endif            
         if (strstr(argv[0], "poweroff")){
             return reboot_main(argc, argv);
         }
@@ -805,7 +1475,7 @@ main(int argc, char **argv) {
     printf("Starting recovery on %s", ctime(&start));
 
     ui_init();
-    ui_print(EXPAND(RECOVERY_VERSION)"\n");
+    //ui_print(EXPAND(RECOVERY_VERSION)"\n");
     load_volume_table();
     process_volumes();
     LOGI("Processing arguments.\n");
@@ -817,6 +1487,8 @@ main(int argc, char **argv) {
     const char *encrypted_fs_mode = NULL;
     int wipe_data = 0, wipe_cache = 0;
     int toggle_secure_fs = 0;
+    int toggle_uilog = 0;
+    int freemb = 0;
     encrypted_fs_info encrypted_fs_data;
 
     LOGI("Checking arguments.\n");
@@ -849,6 +1521,56 @@ main(int argc, char **argv) {
     }
     printf("\n");
 
+   /* 
+     * MIDNIGHT: Ensure partitions mounting without errors
+     * and enable Chanifires EXT4-conversion tool to work
+     * properly (failed because of mounting-data failure
+     * before). Maybe not needed after roots.c RFS fixes.
+     * TODO:    - check if really needed
+     *          - if yes put code in a function
+     */
+    MountedVolume *mv = NULL; 
+    scan_mounted_volumes();
+    if (ensure_path_mounted("/system") != 0) {
+        ui_print("Can't mount %s\n", "/system");
+    }else{
+        freemb=get_partition_free("/system");
+        mv = find_mounted_volume_by_mount_point("/system");
+        ui_print("Mounted ok: %s   %s, free:  %dMb\n", "/system",mv->filesystem,freemb);
+        }
+
+    if (ensure_path_mounted("/cache") != 0) {
+        ui_print("Can't mount %s\n", "/cache");
+    }else{
+        freemb=get_partition_free("/cache");
+        mv = find_mounted_volume_by_mount_point("/cache");
+        ui_print("Mounted ok: %s    %s, free:  %dMb\n", "/cache",mv->filesystem,freemb);
+        }
+
+    if (ensure_path_mounted("/data") != 0) {
+        ui_print("Can't mount %s\n", "/data");
+    }else{
+        freemb=get_partition_free("/data");
+        mv = find_mounted_volume_by_mount_point("/data");
+        ui_print("Mounted ok: %s     %s, free:  %dMb\n", "/data",mv->filesystem,freemb);
+        }
+
+    if (ensure_path_mounted("/datadata") != 0) {
+        ui_print("Can't mount %s\n", "/datadata");
+    }else{
+        freemb=get_partition_free("/datadata");
+        mv = find_mounted_volume_by_mount_point("/datadata");
+        ui_print("Mounted ok: %s %s, free:  %dMb\n", "/datadata",mv->filesystem,freemb);
+        }
+        
+    if (ensure_path_mounted("/sdcard") != 0) {
+        ui_print("Can't mount %s\n", "/sdcard");
+    }else{
+        freemb=get_partition_free("/sdcard");
+        mv = find_mounted_volume_by_mount_point("/sdcard");
+        ui_print("Mounted ok: %s   %s, free: %dMb\n", "/sdcard",mv->filesystem,freemb);
+        }
+        
     if (update_package) {
         // For backwards compatibility on the cache partition only, if
         // we're given an old 'root' path "CACHE:foo", change it to
@@ -917,6 +1639,8 @@ main(int argc, char **argv) {
     } else if (wipe_cache) {
         if (wipe_cache && erase_volume("/cache")) status = INSTALL_ERROR;
         if (status != INSTALL_SUCCESS) ui_print("Cache wipe failed.\n");
+    } else if (toggle_uilog) {
+        ui_print("UILOG INITIATED\n");
     } else {
         LOGI("Checking for extendedcommand...\n");
         status = INSTALL_ERROR;  // No command specified

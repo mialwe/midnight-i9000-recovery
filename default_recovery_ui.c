@@ -19,18 +19,48 @@
 #include "recovery_ui.h"
 #include "common.h"
 #include "extendedcommands.h"
+#include "midnight.h"
 
 char* MENU_HEADERS[] = { NULL };
 
-char* MENU_ITEMS[] = { "reboot system now",
-                       "apply update from sdcard",
-                       "wipe data/factory reset",
-                       "wipe cache partition",
-                       "install zip from sdcard",
-                       "backup and restore",
-                       "mounts and storage",
-                       "advanced",
-                       "power off",
+/*
+ * MIDNIGHT:
+ * Customized menu resulting in less back button clicking ( - one
+ * menu level).
+ * TODO:
+ * - find place for advanced options
+ * - find place for update-zip install
+ */
+ #if 0
+char* MENU_ITEMS[] = { "Reboot",                    // 0
+                       "Reboot to recovery",        // 1
+                       "Reboot to download",        // 2
+                       "Shutdown",                  // 3                       
+                       "Install zip from sdcard...",// 4
+                       "Partition menu...",         // 5
+                       "Nandroid backup/restore/delete...",// 6
+                       "Wipe and cleanup menu...",  // 7
+                       "Install Busybox/ROOT...",    // 8
+                       "Options: video driver...",   // 9
+                       "Options: misc./module loading...",       // 10
+                       "Options: lowmemorykiller...",// 11
+                       "Options: IO scheduler...",   // 12
+                       "Options: READ_AHEAD...",     // 13
+                       "Options: CPU/UV/OC...",      // 14
+                       NULL };
+#endif
+
+char* MENU_ITEMS[] = { "Reboot",                    // 0
+                       "Reboot to recovery",        // 1
+                       "Reboot to download",        // 2
+                       "Shutdown",                  // 3                       
+                       "Install zip from sdcard...",// 4
+                       "Partition menu...",         // 5
+                       "BACKUP menu...",// 6
+                       "CLEANUP / wipe menu...",  // 7
+                       "RESTORE menu ...",    // 8
+                       "Root / unRoot / Busybox menu...", // 9
+                       "Advanced options menu...",   // 10
                        NULL };
 
 int device_recovery_start() {
@@ -46,7 +76,7 @@ int device_toggle_display(volatile char* key_pressed, int key_code) {
         return 0;
         //return get_allow_toggle_display() && (key_code == KEY_HOME || key_code == KEY_MENU || key_code == KEY_END);
     }
-    return get_allow_toggle_display() && (key_code == KEY_HOME || key_code == KEY_MENU || key_code == KEY_POWER || key_code == KEY_END);
+    return get_allow_toggle_display() && (key_code == KEY_MENU || key_code == KEY_BACK);
 }
 
 int device_reboot_now(volatile char* key_pressed, int key_code) {
@@ -59,15 +89,21 @@ int device_handle_key(int key_code, int visible) {
             case KEY_CAPSLOCK:
             case KEY_DOWN:
             case KEY_VOLUMEDOWN:
-            case KEY_MENU:
                 return HIGHLIGHT_DOWN;
 
+            case KEY_MENU:
             case KEY_LEFTSHIFT:
             case KEY_UP:
             case KEY_VOLUMEUP:
-            case KEY_HOME:
                 return HIGHLIGHT_UP;
 
+            case KEY_HOME:
+                return SELECT_ITEM;
+            /*
+             * MIDNIGHT: Enable back button for SGS
+             */
+            case KEY_BACK:
+                    return GO_BACK;
             case KEY_POWER:
                 if (ui_get_showing_back_button()) {
                     return SELECT_ITEM;
@@ -81,19 +117,12 @@ int device_handle_key(int key_code, int visible) {
             case KEY_CENTER:
             case KEY_CAMERA:
             case KEY_F21:
-            case KEY_SEND:
-                return SELECT_ITEM;
-            
+            case KEY_SEND:           
             case KEY_END:
             case KEY_BACKSPACE:
             case KEY_SEARCH:
-                if (ui_get_showing_back_button()) {
-                    return SELECT_ITEM;
-                }
-                if (!get_allow_toggle_display())
-                    return GO_BACK;
-            case KEY_BACK:
-                return GO_BACK;
+            //case KEY_BACK:
+                return NO_ACTION;
         }
     }
 

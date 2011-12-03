@@ -149,9 +149,10 @@ int try_mount(const char* device, const char* mount_point, const char* fs_type, 
     if (device == NULL || mount_point == NULL || fs_type == NULL)
         return -1;
     int ret = 0;
+    char mount_cmd[PATH_MAX];
     if (fs_options == NULL) {
         ret = mount(device, mount_point, fs_type,
-                       MS_NOATIME | MS_NODEV | MS_NODIRATIME, "");
+                       MS_NOATIME | MS_NODEV | MS_NODIRATIME, "check=no");
     }
     else {
         char mount_cmd[PATH_MAX];
@@ -160,6 +161,34 @@ int try_mount(const char* device, const char* mount_point, const char* fs_type, 
     }
     if (ret == 0)
         return 0;
+
+    /*
+     * MIDNIGHT: Retry with hardcoded EXT4/RFS.
+     * Mounting fails for RFS if called without "-t rfs" and will corrupt 
+     * partition if called without "check=no". Retrying ext4, too, just to
+     * be sure.
+     */    
+    LOGW("try_mount: failed to mount %s (%s), retrying EXT4\n", device, strerror(errno));
+    sprintf(mount_cmd, "mount -t ext4 %s %s", device, mount_point);
+    ret = __system(mount_cmd);    
+    if (ret == 0)
+        return 0;
+    LOGW("try_mount: failed to mount %s (%s), retrying RFS\n", device, strerror(errno));
+    sprintf(mount_cmd, "mount -t rfs %s %s", device, mount_point);
+    ret = __system(mount_cmd);    
+    if (ret == 0)
+        return 0;
+             
+    LOGW("Getting weird...\n");
+    LOGW("MP: %s, DEV: %s\n",mount_point,device);            
+    if(strcmp("/sdcard",mount_point) == 0){            
+        LOGW("try_mount: failed to mount %s (%s), retrying VFAT for /sdcard\n", device, strerror(errno));
+        sprintf(mount_cmd, "mount -t vfat %s %s", device, mount_point);
+        ret = __system(mount_cmd);    
+        if (ret == 0)
+            return 0;
+    }
+
     LOGW("failed to mount %s (%s)\n", device, strerror(errno));
     return ret;
 }
@@ -176,6 +205,8 @@ void setup_data_media() {
 }
 
 int ensure_path_mounted(const char* path) {
+    int ret = 0;
+    char mount_cmd[PATH_MAX];
     Volume* v = volume_for_path(path);
     if (v == NULL) {
         // no /sdcard? let's assume /data/media
@@ -236,12 +267,33 @@ int ensure_path_mounted(const char* path) {
             return 0;
         return result;
     } else {
+        // MIDNIGHT: Try hardcoded EXT4/RFS again...
+        LOGW("ensure_path_mounted: failed to mount %s (%s), retrying EXT4\n", v->device, strerror(errno));
+        sprintf(mount_cmd, "mount -t ext4 %s %s", v->device, v->mount_point);
+        ret = __system(mount_cmd);    
+        if (ret == 0)
+            return 0;
+        LOGW("ensure_path_mounted: failed to mount %s (%s), retrying RFS\n", v->device, strerror(errno));
+        sprintf(mount_cmd, "mount -t rfs %s %s", v->device, v->mount_point);
+        ret = __system(mount_cmd);    
+        if (ret == 0)
+            return 0;         
         // let's try mounting with the mount binary and hope for the best.
         char mount_cmd[PATH_MAX];
         sprintf(mount_cmd, "mount %s", path);
         return __system(mount_cmd);
     }
-
+    // MIDNIGHT: last try - maybe not neccessary...
+    LOGW("ensure_path_mounted: failed to mount %s (%s), retrying EXT4\n", v->device, strerror(errno));
+    sprintf(mount_cmd, "mount -t ext4 %s %s", v->device, v->mount_point);
+    ret = __system(mount_cmd);    
+    if (ret == 0)
+        return 0;
+    LOGW("ensure_path_mounted: failed to mount %s (%s), retrying RFS\n", v->device, strerror(errno));
+    sprintf(mount_cmd, "mount -t rfs %s %s", v->device, v->mount_point);
+    ret = __system(mount_cmd);    
+    if (ret == 0)
+        return 0;        
     LOGE("unknown fs_type \"%s\" for %s\n", v->fs_type, v->mount_point);
     return -1;
 }
@@ -281,6 +333,38 @@ int ensure_path_unmounted(const char* path) {
     }
 
     return unmount_mounted_volume(mv);
+}
+
+int format_rfs_device (const char *device, const char *path) {
+    const char *fatsize = "32";
+    const char *sectorsize = "1";
+
+    if (strcmp(path, "/datadata") == 0 || strcmp(path, "/cache") == 0) {
+        fatsize = "16";
+    }
+
+    // Just in case /data sector size needs to be altered
+    else if (strcmp(path, "/data") == 0 ) {
+        sectorsize = "1";
+    } 
+
+    // dump 10KB of zeros to partition before format due to fat.format bug
+    char cmd[PATH_MAX];
+
+    sprintf(cmd, "/sbin/dd if=/dev/zero of=%s bs=4096 count=10", device);
+    if(__system(cmd)) {
+        printf("failure while zeroing rfs partition.\n");
+        return -1;
+    }
+
+    // Run fat.format
+    sprintf(cmd, "/sbin/fat.format -F %s -S 4096 -s %s %s", fatsize, sectorsize, device);
+    if(__system(cmd)) {
+        printf("failure while running fat.format\n");
+        return -1;
+    }
+
+    return 0;
 }
 
 int format_volume(const char* volume) {

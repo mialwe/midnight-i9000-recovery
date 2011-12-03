@@ -121,7 +121,7 @@ static void draw_background_locked(gr_surface icon)
         int iconWidth = gr_get_width(icon);
         int iconHeight = gr_get_height(icon);
         int iconX = (gr_fb_width() - iconWidth) / 2;
-        int iconY = (gr_fb_height() - iconHeight) / 2;
+        int iconY = (gr_fb_height() - iconHeight) - 4 ; // /2
         gr_blit(icon, 0, 0, iconWidth, iconHeight, iconX, iconY);
     }
 }
@@ -168,7 +168,7 @@ static void draw_text_line(int row, const char* t) {
   }
 }
 
-#define MENU_TEXT_COLOR 255, 160, 49, 255
+#define MENU_TEXT_COLOR 49, 160, 255, 255
 #define NORMAL_TEXT_COLOR 200, 200, 200, 255
 #define HEADER_TEXT_COLOR NORMAL_TEXT_COLOR
 
@@ -181,8 +181,8 @@ static void draw_screen_locked(void)
     draw_progress_locked();
 
     if (show_text) {
-        gr_color(0, 0, 0, 160);
-        gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+        //gr_color(0, 0, 0, 160);
+        //gr_fill(0, 0, gr_fb_width(), gr_fb_height());
 
         int i = 0;
         int j = 0;
@@ -218,7 +218,7 @@ static void draw_screen_locked(void)
             gr_fill(0, row*CHAR_HEIGHT+CHAR_HEIGHT/2-1,
                     gr_fb_width(), row*CHAR_HEIGHT+CHAR_HEIGHT/2+1);
         }
-
+        row++;
         gr_color(NORMAL_TEXT_COLOR);
         for (; row < text_rows; ++row) {
             draw_text_line(row, text[(row+text_top) % text_rows]);
@@ -514,7 +514,7 @@ void ui_reset_text_col()
     pthread_mutex_unlock(&gUpdateMutex);
 }
 
-#define MENU_ITEM_HEADER " - "
+#define MENU_ITEM_HEADER " "
 #define MENU_ITEM_HEADER_LENGTH strlen(MENU_ITEM_HEADER)
 
 int ui_start_menu(char** headers, char** items, int initial_selection) {

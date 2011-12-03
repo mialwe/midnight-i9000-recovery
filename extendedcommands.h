@@ -17,7 +17,7 @@ int
 do_nandroid_restore();
 
 void
-show_nandroid_restore_menu();
+show_nandroid_restore_delete_menu(unsigned int);
 
 void
 show_nandroid_menu();
@@ -36,6 +36,9 @@ __system(const char *command);
 
 void
 show_advanced_menu();
+
+void
+show_voodoo_menu();
 
 int format_unknown_device(const char *device, const char* path, const char *fs_type);
 
@@ -57,3 +60,4 @@ void show_install_update_menu();
 int confirm_selection(const char* title, const char* confirm);
 
 int run_and_remove_extendedcommand();
+void cleanup_submenu(int m);
