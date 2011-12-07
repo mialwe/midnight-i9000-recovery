@@ -600,7 +600,7 @@ void show_partition_menu()
 				mount_menue[mountable_volumes].v = &device_volumes[i];
 				++mountable_volumes;
 				if (is_safe_to_format(v->mount_point)) {
-					sprintf(&format_menue[formatable_volumes].txt, "RFS:erase / EXT4:format %s", v->mount_point);
+					sprintf(&format_menue[formatable_volumes].txt, "Erase %s", v->mount_point);
 					format_menue[formatable_volumes].v = &device_volumes[i];
 					++formatable_volumes;
 				}
@@ -852,10 +852,18 @@ void show_nandroid_advanced_restore_menu(const int backuptype)
 
     switch (backuptype){
         case(1):
+            ui_print("\nNandroid /system restore\n");
+            ui_print("------------------\n");
+            ui_print("%s\n",file);
+            ui_print("------------------\n");   
             if (confirm_selection(confirm_restore, "Yes - Restore /system"))
                 nandroid_restore(file, 0, 1, 0, 0, 0, 0);
             break;
         case(2):
+            ui_print("\nNandroid /data + /dbdata restore\n");
+            ui_print("------------------\n");
+            ui_print("%s\n",file);
+            ui_print("------------------\n");   
             if (confirm_selection(confirm_restore, "Yes - Restore /data + /dbdata"))
                 nandroid_restore(file, 0, 0, 1, 0, 0, 0);
             break;
@@ -863,18 +871,34 @@ void show_nandroid_advanced_restore_menu(const int backuptype)
             chosen_item = get_menu_selection(headers, list, 0, 0);
             switch (chosen_item){
             case 0:
+                ui_print("\nNandroid BOOT restore\n");
+                ui_print("------------------\n");
+                ui_print("%s\n",file);
+                ui_print("------------------\n");   
                 if (confirm_selection(confirm_restore, "Yes - Restore boot"))
                     nandroid_restore(file, 1, 0, 0, 0, 0, 0);
                 break;
             case 1:
+                ui_print("\nNandroid /system restore\n");
+                ui_print("------------------\n");
+                ui_print("%s\n",file);
+                ui_print("------------------\n");   
                 if (confirm_selection(confirm_restore, "Yes - Restore system"))
                     nandroid_restore(file, 0, 1, 0, 0, 0, 0);
                 break;
             case 2:
+                ui_print("\nNandroid /data + /dbdata restore\n");
+                ui_print("------------------\n");
+                ui_print("%s\n",file);
+                ui_print("------------------\n");   
                 if (confirm_selection(confirm_restore, "Yes - Restore data"))
                     nandroid_restore(file, 0, 0, 1, 0, 0, 0);
                 break;
             case 3:
+                ui_print("\nNandroid /cache restore\n");
+                ui_print("------------------\n");
+                ui_print("%s\n",file);
+                ui_print("------------------\n");   
                 if (confirm_selection(confirm_restore, "Yes - Restore cache"))
                     nandroid_restore(file, 0, 0, 0, 1, 0, 0);
                 break;
@@ -968,10 +992,10 @@ void show_nandroid_menu()
 
     static char* list[] = { "Backup ALL",
                             "Backup /system",
-                            "Backup /data + /datadata",
+                            "Backup /data + /dbdata",
                             "Restore ALL...",
                             "Restore /system...",
-                            "Restore /data + /datadata...",
+                            "Restore /data + /dbdata...",
                             "Restore selected file...",
                             "Delete Nandroid backup...",
                             NULL
@@ -1297,7 +1321,7 @@ void create_fstab()
     write_fstab_root("/cache", file);
     write_fstab_root("/data", file);
     if (has_datadata()) {
-        write_fstab_root("/datadata", file);
+        write_fstab_root("/dbdata", file);
     }
     write_fstab_root("/system", file);
     write_fstab_root("/sdcard", file);
@@ -1346,7 +1370,7 @@ void process_volumes() {
     ret = bml_check_volume("/system");
     ret |= bml_check_volume("/data");
     if (has_datadata())
-        ret |= bml_check_volume("/datadata");
+        ret |= bml_check_volume("/dbdata");
     ret |= bml_check_volume("/cache");
     
     if (ret == 0) {
@@ -1412,7 +1436,7 @@ int is_path_mounted(const char* path) {
 }
 
 int has_datadata() {
-    Volume *vol = volume_for_path("/datadata");
+    Volume *vol = volume_for_path("/dbdata");
     return vol != NULL;
 }
 

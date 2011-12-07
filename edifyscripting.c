@@ -136,8 +136,8 @@ Value* FormatFn(const char* name, State* state, int argc, Expr* argv[]) {
     }
     
     if (strcmp(path, "/data") == 0 && has_datadata()) {
-        ui_print("Formatting /datadata...\n", path);
-        if (0 != format_volume("/datadata")) {
+        ui_print("Formatting /dbdata...\n", path);
+        if (0 != format_volume("/dbdata")) {
             free(path);
             return StringValue(strdup(""));
         }

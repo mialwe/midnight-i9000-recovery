@@ -279,7 +279,7 @@ int nandroid_backup(const char* backup_path)
         return ret;
 
     if (has_datadata()) {
-        if (0 != (ret = nandroid_backup_partition(backup_path, "/datadata")))
+        if (0 != (ret = nandroid_backup_partition(backup_path, "/dbdata")))
             return ret;
     }
 
@@ -347,11 +347,11 @@ int nandroid_backup_selective(const char* backup_path, const int backuptype)
     __system(tmp);
     
     if(backuptype == 2){        // data + dbdata
-        ui_print("Starting /data + /datadata backup...\n");        
+        ui_print("Starting /data + /dbdata backup...\n");        
         if (0 != (ret = nandroid_backup_partition(backup_path, "/data")))
             return ret;
         if (has_datadata()) {
-            if (0 != (ret = nandroid_backup_partition(backup_path, "/datadata")))
+            if (0 != (ret = nandroid_backup_partition(backup_path, "/dbdata")))
                 return ret;
         }
     }else if (backuptype == 1){ // system
@@ -631,7 +631,7 @@ int nandroid_restore(const char* backup_path, int restore_boot, int restore_syst
         return ret;
         
     if (has_datadata()) {
-        if (restore_data && 0 != (ret = nandroid_restore_partition(backup_path, "/datadata")))
+        if (restore_data && 0 != (ret = nandroid_restore_partition(backup_path, "/dbdata")))
             return ret;
     }
 

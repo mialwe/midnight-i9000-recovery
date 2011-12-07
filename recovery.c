@@ -684,7 +684,7 @@ wipe_data(int confirm) {
     erase_volume("/data");
     erase_volume("/cache");
     if (has_datadata()) {
-        erase_volume("/datadata");
+        erase_volume("/dbdata");
     }
     // Midnight: skip sd-ext on stock Samsung ROM
     //erase_volume("/sd-ext");
@@ -968,18 +968,18 @@ void rm_bloat(const char *filename){
     sprintf(tmp,"rm /system/app/%s.apk",filename);
     if(0 == __system(tmp)){
         ui_print("Deleted: %s.apk\n",filename);
-        LOGI("Deleted: %s.apk",filename);
+        LOGI("Deleted: %s.apk\n",filename);
     }else{
-        ui_print("Failed: %s.apk\n",filename);
-        LOGI("Failed: %s.apk",filename);
+        //ui_print("Failed: %s.apk\n",filename);
+        LOGI("Failed: %s.apk\n",filename);
         }
     sprintf(tmp,"rm /system/app/%s.odex",filename);
     if(0 == __system(tmp)){
         ui_print("Deleted: %s.odex\n",filename);
-        LOGI("Deleted: %s.odex",filename);
+        LOGI("Deleted: %s.odex\n",filename);
     }else{
-        ui_print("Failed: %s.odex\n",filename);
-        LOGI("Failed: %s.odex",filename);
+        //ui_print("Failed: %s.odex\n",filename);
+        LOGI("Failed: %s.odex\n",filename);
         }
 }
 
@@ -997,24 +997,26 @@ void cleanup_menu(){
                             "Delete custom bootanimations",
                             "Delete start/shutdown sounds",
                             "Delete Midnight configfiles",
-                            "Delete bloatware (~19Mb)",
+                            "Delete bloatware (~15Mb)",
                             "Delete some Google apps (~0.8Mb)",
-                            "Delete SamsungApps (~3Mb)",
+                            "Delete SamsungApps (~5Mb)",
                             "Delete Facebook/Twitter sync (~0.7Mb)",
                             "Delete some fonts (~3Mb)",
                             "Delete Samsung Widgets (~3.7Mb)",
-                            "Delete MIALWE preset (~59Mb)",
+                            "Delete MIALWE preset (~52Mb)",
                             NULL
     };
     
     ensure_path_mounted("/system");
     ensure_path_mounted("/data");
       
-    ui_print("\nBloatware/cleanup info\n");
+    ui_print("\nBloatware-cleanup info\n");
     ui_print("------------------\n");
     ui_print("The last 7 delete options (bloatware,...)\n");
     ui_print("will give you a list of all packages to be\n");
-    ui_print("deleted from /system in case you confirm.\n");
+    ui_print("deleted from /system before confirmation.\n");
+    ui_print("A Nandroid-SYSTEM backup might be useful\n");
+    ui_print("as there will be no apk/odex backup.\n");
     ui_print("------------------\n");
     
     for (;;)
@@ -1162,12 +1164,20 @@ void cleanup_menu(){
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
                     ui_print("SamsungApps, SamsungAppsUNAService\n");
+                    ui_print("SamsungAppsUNA3, signin, wssyncmlnps,\n");
+                    ui_print("WlanTest syncmldm syncmlds\n");
                     ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
 
                    if (confirm_selection("Confirm deleting /system SamsungApps","Yes - I know what I'm doing")) {  
                         ui_print("\nDeleting /system SamsungApps...\n");
                         rm_bloat("SamsungApps");
                         rm_bloat("SamsungAppsUNAService");
+                        rm_bloat("SamsungAppsUNA3"); 
+                        rm_bloat("signin"); 
+                        rm_bloat("wssyncmlnps"); 
+                        rm_bloat("WlanTest"); 
+                        rm_bloat("syncmldm"); 
+                        rm_bloat("syncmlds");
                         ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
                         ui_print("Done.\n");
                     }
@@ -1536,7 +1546,7 @@ main(int argc, char **argv) {
     }else{
         freemb=get_partition_free("/system");
         mv = find_mounted_volume_by_mount_point("/system");
-        ui_print("Mounted ok: %s   %s, free:  %dMb\n", "/system",mv->filesystem,freemb);
+        ui_print("Mounted ok: %s   %s, free: %dMb\n", "/system",mv->filesystem,freemb);
         }
 
     if (ensure_path_mounted("/cache") != 0) {
@@ -1544,7 +1554,7 @@ main(int argc, char **argv) {
     }else{
         freemb=get_partition_free("/cache");
         mv = find_mounted_volume_by_mount_point("/cache");
-        ui_print("Mounted ok: %s    %s, free:  %dMb\n", "/cache",mv->filesystem,freemb);
+        ui_print("Mounted ok: %s    %s, free: %dMb\n", "/cache",mv->filesystem,freemb);
         }
 
     if (ensure_path_mounted("/data") != 0) {
@@ -1552,15 +1562,15 @@ main(int argc, char **argv) {
     }else{
         freemb=get_partition_free("/data");
         mv = find_mounted_volume_by_mount_point("/data");
-        ui_print("Mounted ok: %s     %s, free:  %dMb\n", "/data",mv->filesystem,freemb);
+        ui_print("Mounted ok: %s     %s, free: %dMb\n", "/data",mv->filesystem,freemb);
         }
 
-    if (ensure_path_mounted("/datadata") != 0) {
-        ui_print("Can't mount %s\n", "/datadata");
+    if (ensure_path_mounted("/dbdata") != 0) {
+        ui_print("Can't mount %s\n", "/dbdata");
     }else{
-        freemb=get_partition_free("/datadata");
-        mv = find_mounted_volume_by_mount_point("/datadata");
-        ui_print("Mounted ok: %s %s, free:  %dMb\n", "/datadata",mv->filesystem,freemb);
+        freemb=get_partition_free("/dbdata");
+        mv = find_mounted_volume_by_mount_point("/dbdata");
+        ui_print("Mounted ok: %s   %s, free: %dMb\n", "/dbdata",mv->filesystem,freemb);
         }
         
     if (ensure_path_mounted("/sdcard") != 0) {

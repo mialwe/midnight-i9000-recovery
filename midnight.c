@@ -659,11 +659,11 @@ void modules_menu() {
 		"Toggle TUN module loading (VPN)",
         "Toggle IPv4/IPv6 security",
         "Toggle init.d support",
-        "Toggle enhanced touchscreen sensitivity",
+        "Toggle touchscreen sensitivity +",
         "Toggle NO-autoROOT",
         "Toggle NO-MidnightTweaks",
         NULL};
-    int num=9;
+    int num=8;
     const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "TOUCH", "NOAUTOROOT", "NOTWEAKS" };
     const char* cnff="/system/etc/midnight_misc.conf";
     custom_menu(h,m,num,cnfv,cnff,0);

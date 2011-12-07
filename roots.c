@@ -207,6 +207,7 @@ void setup_data_media() {
 int ensure_path_mounted(const char* path) {
     int ret = 0;
     char mount_cmd[PATH_MAX];
+        
     Volume* v = volume_for_path(path);
     if (v == NULL) {
         // no /sdcard? let's assume /data/media
@@ -339,7 +340,7 @@ int format_rfs_device (const char *device, const char *path) {
     const char *fatsize = "32";
     const char *sectorsize = "1";
 
-    if (strcmp(path, "/datadata") == 0 || strcmp(path, "/cache") == 0) {
+    if (strcmp(path, "/dbdata") == 0 || strcmp(path, "/cache") == 0) {
         fatsize = "16";
     }
 
