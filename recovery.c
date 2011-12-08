@@ -1436,12 +1436,14 @@ int
 main(int argc, char **argv) {
 	if (strstr(argv[0], "recovery") == NULL)
 	{   
+# if 0
     // DEBUG OUTPUT
-    //int i;
-    //printf("call = ");
-    //for (i = 0; i < argc; i++)
-    //    printf("\"%s\"\n",argv[i]);
-    //printf("\n");    
+    int i;
+    printf("call: [ %d args]= ",argc);
+    for (i = 0; i < argc; i++)
+        printf("\"%s\" ",argv[i]);
+    printf("\n");
+#endif
         if (strstr(argv[0], "flash_image") != NULL)
 	        return flash_image_main(argc, argv);
 	    if (strstr(argv[0], "volume") != NULL)
@@ -1460,13 +1462,18 @@ main(int argc, char **argv) {
             return nandroid_main(argc, argv);                                
         if (strstr(argv[0], "reboot"))
             return reboot_main(argc, argv);
-#ifdef BOARD_RECOVERY_HANDLES_MOUNT
-        if (strstr(argv[0], "mount") && argc == 2 && !strstr(argv[0], "umount"))
+        if (strstr(argv[0], "mount") && !strstr(argv[0], "umount"))
         {
+            LOGI("CWM handling mount call...\n");
             load_volume_table();
-            return ensure_path_mounted(argv[1]);
+            if(argc==2){ // only path
+                return ensure_path_mounted(argv[1]);
+            }else{
+                if (argc==3){ // device + path
+                    return ensure_path_mounted(argv[2]);                
+                    }
+            }
         }
-#endif            
         if (strstr(argv[0], "poweroff")){
             return reboot_main(argc, argv);
         }
