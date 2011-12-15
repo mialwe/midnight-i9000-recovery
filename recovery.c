@@ -1122,6 +1122,7 @@ void cleanup_menu(){
                     ui_print("BuddiesNow, Days, Layar-samsung, Memo,\n");
                     ui_print("MiniDiary, PressReader, WriteandGo\n");
                     ui_print("aldiko-standard, thinkdroid, Protips\n");
+                    ui_print("YouTube, HRS-Android\n");
                     ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
 
                    if (confirm_selection("Confirm deleting /system bloatware","Yes - I know what I'm doing")) {  
@@ -1136,6 +1137,8 @@ void cleanup_menu(){
                         rm_bloat("aldiko-standard-1.2.6.1-samsung-s1");
                         rm_bloat("thinkdroid");
                         rm_bloat("Protips");
+                        rm_bloat("YouTube");
+                        rm_bloat("HRS-Android");
                         ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
                         ui_print("Done.\n");
                     }
@@ -1264,7 +1267,7 @@ void cleanup_menu(){
                     ui_print("Swype, thinkdroid, TwWallpaperChooser,");
                     ui_print("VideoPlayer, VisualizationWallpapers,");
                     ui_print("VoiceDialer, VoiceRecorder,");
-                    ui_print("VoiceSearch, WriteandGo,");
+                    ui_print("VoiceSearch, WriteandGo,MagicSmokeWallpapers");
  
                     ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
 
@@ -1314,6 +1317,7 @@ void cleanup_menu(){
                         rm_bloat("VoiceRecorder");
                         rm_bloat("VoiceSearch");
                         rm_bloat("WriteandGo");
+                        rm_bloat("MagicSmokeWallpapers");
                         ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
                         ui_print("Done.\n");
                     }

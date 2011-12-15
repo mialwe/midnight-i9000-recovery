@@ -659,12 +659,11 @@ void modules_menu() {
 		"Toggle TUN module loading (VPN)",
         "Toggle IPv4/IPv6 security",
         "Toggle init.d support",
-        "Toggle touchscreen sensitivity +",
         "Toggle NO-autoROOT",
         "Toggle NO-MidnightTweaks",
         NULL};
-    int num=8;
-    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "TOUCH", "NOAUTOROOT", "NOTWEAKS" };
+    int num=7;
+    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "NOAUTOROOT", "NOTWEAKS" };
     const char* cnff="/system/etc/midnight_misc.conf";
     custom_menu(h,m,num,cnfv,cnff,0);
 }
@@ -720,6 +719,24 @@ void create_backup_dirs() {
   __system("mkdir -p /data/midnight/backups/bootanimation/system");
   //__system("mkdir -p /data/midnight/backups/voltage-control");
   //__system("mkdir -p /data/midnight/backups/localprop");
+}
+
+void touch_menu() {
+    const char* h[]={   
+        "SELECT TOUCHSCREEN SENSITIVITY",
+        "",
+        "",
+        NULL};
+    const char* m[]={   
+        "Stock values [default]",
+        "Sensitivity +",
+        "Sensitivity ++",
+        "Sensitivity +++",
+        NULL};
+    int num=4;
+    const char* cnfv[]={"TOUCH_DEFAULT","TOUCH_PLUS1","TOUCH_PLUS2","TOUCH_PLUS3"};
+    const char* cnff="/system/etc/midnight_touch.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
 }
 
 void cpu_max_menu() {
@@ -1072,6 +1089,7 @@ void show_advanced_menu() {
     static char* list[] = { "CPU options...",
                             "IO scheduler options...",
                             "READ_AHEAD options...",
+                            "Touch sensitivity options...",
                             "Lowmemorykiller options...",
                             "Video driver options...",
                             "Misc. options/modules loading...",
@@ -1101,15 +1119,20 @@ void show_advanced_menu() {
               }
               case 3:
               {
-                lmk_menu();
+                touch_menu();
                 break;
               }
               case 4:
               {
-                gfx_menu(1300);
+                lmk_menu();
                 break;
               }
               case 5:
+              {
+                gfx_menu(1300);
+                break;
+              }
+              case 6:
               {
                 modules_menu(1200);
                 break;
