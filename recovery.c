@@ -781,7 +781,8 @@ void backup_menu(){
                         ui_print("\nSearching sounds...\n");
                         if( show_file_exists("Original","/system/etc/PowerOn.snd","PowerOn.snd:","found.", "not found.") ||
                         show_file_exists("Original","/system/etc/PowerOn.wav","PowerOn.wav:","found.", "not found.") ||
-                        show_file_exists("Original","/system/media/audio/ui/shutdown.ogg","shutdown.ogg:","found.", "not found.")){
+                        show_file_exists("Original","/system/media/audio/ui/shutdown.ogg","shutdown.ogg:","found.", "not found.") ||
+                        show_file_exists("Original","/system/media/audio/ui/PowerOff.wav","PowerOff.wav:","found.", "not found.")){
                             ui_print("Cleaning backup directory...\n");
                             __system("rm -r /data/midnight/backups/sounds/*");                
                             ui_print("Backup to /data/midnight/backups/sounds...\n");
@@ -789,6 +790,7 @@ void backup_menu(){
                             __system("cp /system/etc/PowerOn.snd /data/midnight/backups/sounds");                
                             __system("cp /system/etc/PowerOn.wav /data/midnight/backups/sounds");                
                             __system("cp /system/media/audio/ui/shutdown.ogg /data/midnight/backups/sounds");                
+                            __system("cp /system/media/audio/ui/PowerOff.wav /data/midnight/backups/sounds");                
                             ui_print("Done.\n");
                         }
                     }
@@ -920,6 +922,7 @@ void restore_menu(){
                       __system("cp /data/midnight/backups/sounds/PowerOn.snd /system/etc");                
                       __system("cp /data/midnight/backups/sounds/PowerOn.wav /system/etc");                
                       __system("cp /data/midnight/backups/sounds/shutdown.ogg /system/media/audio/ui");                
+                      __system("cp /data/midnight/backups/sounds/PowerOff.wav /system/media/audio/ui");                
                       ui_print("Done.\n");
                     }
                     break;
