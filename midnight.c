@@ -550,14 +550,15 @@ void lmk_preset_menu() {
         "",
         "",
         NULL};
+     //# 6,9,13,48,60,70    
     const char* m[]={   
-        "[0] 8,16,46,55,60,70Mb (MIDNIGHT)",
+        "[0] 6,9,13,48,60,70Mb (MIDNIGHT)",
         "[1] 8,12,16,24,28,32Mb (NEXUS S)",
 		"[2] 8,16,24,28,36,42Mb",
 		"[3] 8,16,24,36,48,56Mb",
-		"[4] 8,16,44,48,56,68Mb",
-        "[5] 8,16,46,56,68,88Mb",
-        "[6] 8,16,46,62,74,96Mb",
+		"[4] 8,16,30,48,56,68Mb",
+        "[5] 8,16,30,56,68,88Mb",
+        "[6] 8,16,30,62,74,96Mb",
         NULL};
     int num=7;
     const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4","LMK5","LMK6" };
@@ -782,12 +783,9 @@ void IO_sched_menu() {
     const char* m[]={   
         "NOOP [default]",
         "SIO",
-        "VR",
-        "CFQ",
-        "DEADLINE",
         NULL};
-    int num=5;
-    const char* cnfv[]={"IO_SCHED_NOOP","IO_SCHED_SIO","IO_SCHED_VR","IO_SCHED_CFQ","IO_SCHED_DEADLINE"};
+    int num=3;
+    const char* cnfv[]={"IO_SCHED_NOOP","IO_SCHED_SIO"};
     const char* cnff="/system/etc/midnight_io_sched.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
@@ -1082,6 +1080,259 @@ void lmk_menu() {
     }
 }
 
+int apply_appbackup(void)
+{
+    char path[PATH_MAX] = "";
+    char tmp[PATH_MAX] ="";
+    int numFiles = 0;
+    int i = 0;
+    unsigned int freemb = 0;
+    unsigned int maxmb = 0;
+    struct stat filedata;
+        
+    ui_print("\nStarting backup of /data/app...\n");
+
+    // we need our source packages...
+    LOGI("/data/app backup requested, mounting...\n");
+    if(0 != ensure_path_mounted("/data")){
+        ui_print("Failed to mount /data, exiting...\n");
+        return 1;
+    }
+
+    // we need temp space to zipalign...
+    if(0 != ensure_path_mounted("/sdcard")){
+        ui_print("Failed to mount /sdcard, exiting...\n");
+        return 1;
+    }
+            
+    // get files
+    char** files = gather_files("/data/app/",".apk", &numFiles);
+    // bail out if nothing found
+    if (numFiles <= 0)
+    {
+        ui_print("No files found, exiting.\n");
+        return 1;
+    }
+
+    // create directory...   
+    ui_print("Creating dir /sdcard/midnight_appbackup...\n");
+    sprintf(tmp,"mkdir -p /sdcard/midnight_appbackup"); 
+    if(0 != __system(tmp)){
+        ui_print("Failed to to execute %s, exiting...\n",tmp);
+        return 1;
+    }
+    
+    char** list = (char**) malloc((numFiles + 1) * sizeof(char*));
+    list[numFiles] = NULL;
+    
+    freemb=get_partition_free("/sdcard")*1048576; // free Mb in byte
+    LOGI("Free Mb on /sdcard: %i\n",freemb);
+    for (i = 0 ; i < numFiles; i++)
+    {
+        list[i] = strdup(files[i]);
+        if (stat(list[i], &filedata) < 0) {
+           LOGE("Error stat'ing %s: %s\n", list[i], strerror(errno));
+           return 1;
+        }
+        LOGI("Filesize: %i\n",filedata.st_size);       
+            maxmb = maxmb + filedata.st_size;
+    }
+    
+    // check available space...
+    if(maxmb >= freemb){
+        ui_print("Not enough space on /sdcard, please\n");
+        ui_print("free at least %i Mb, exiting...\n",(maxmb/1024/1024));
+        return 1;        
+    }    
+        
+    // let's go...    
+    for (i = 0 ; i < numFiles; i++)
+    {
+        sprintf(tmp,"cp %s /sdcard/midnight_appbackup/",list[i]);
+        if(0 == __system(tmp)){
+            ui_print("Backing up %s\n",list[i]);
+        }else{
+            ui_print("Error backing up %s\n",list[i]);        
+        }
+    }
+
+    ui_print("Done.\n");
+    free_string_array(list);
+    free_string_array(files);
+    return 0;
+}
+
+int apply_zipalign(const char* directory)
+{
+    char path[PATH_MAX] = "";
+    char tempdir[PATH_MAX] = "";
+    char checkit[PATH_MAX] = "/res/misc/zipalign -c 4 %s";
+    char doit[PATH_MAX] = "/res/misc/zipalign -f 4 %s /sdcard/midnight_zipalign%s";
+    char copyit[PATH_MAX] = "cp -p /sdcard/midnight_zipalign%s %s";
+    char removeit[PATH_MAX] = "rm /sdcard/midnight_zipalign%s";
+    char chmodit[PATH_MAX] = "chmod 644 %s";
+    
+    char cmd_zipalign[PATH_MAX] ="";
+    int numFiles = 0;
+    int i = 0;
+    int zcount = 0;
+    unsigned int freemb = 0;
+    unsigned int maxmb = 0;
+    struct stat filedata;
+        
+    ui_print("\nStarting zipaligning in %s\n",directory);
+
+    // we need our source packages...
+    if(strstr(directory,"/data") !=0 ){
+        LOGI("/data zipalign requested, mounting...\n");
+        if(0 != ensure_path_mounted("/data")){
+            ui_print("Failed to mount /data, exiting...\n");
+            return 1;
+        }
+    }
+    if(strstr(directory,"/system") !=0 ){
+        LOGI("/system zipalign requested, mounting...\n");
+        if(0 != ensure_path_mounted("/system")){
+            ui_print("Failed to mount /system, exiting...\n");
+            return 1;
+        }
+    }    
+    // we need temp space to zipalign...
+    if(0 != ensure_path_mounted("/sdcard")){
+        ui_print("Failed to mount /sdcard, exiting...\n");
+        return 1;
+    }
+            
+    // get files
+    char** files = gather_files(directory,".apk", &numFiles);
+    // bail out if nothing found
+    if (numFiles <= 0)
+    {
+        ui_print("No files found, exiting.\n");
+        return 1;
+    }
+
+    // create temp directory to zipalign...   
+    ui_print("Creating temp dir /sdcard/midnight_zipalign...\n");
+    sprintf(tempdir,"mkdir -p /sdcard/midnight_zipalign%s",directory); 
+    if(0 != __system(tempdir)){
+        ui_print("Failed to to execute %s, exiting...\n",tempdir);
+        return 1;
+    }
+    
+    char** list = (char**) malloc((numFiles + 1) * sizeof(char*));
+    list[numFiles] = NULL;
+    
+    freemb=get_partition_free("/sdcard")*1048576; // free Mb in byte
+    LOGI("Free Mb on /sdcard: %i\n",freemb);
+    for (i = 0 ; i < numFiles; i++)
+    {
+        list[i] = strdup(files[i]);
+        if (stat(list[i], &filedata) < 0) {
+           LOGE("Error stat'ing %s: %s\n", list[i], strerror(errno));
+           return 1;
+        }
+        LOGI("Filesize: %i\n",filedata.st_size);       
+        if(maxmb < filedata.st_size){
+            maxmb = filedata.st_size;
+            LOGI("New max mb: %i\n",maxmb);
+        }
+    }
+    
+    // check available space...
+    if(maxmb >= freemb){
+        ui_print("Not enough space on /sdcard, please\n");
+        ui_print("free at least %i byte, exiting...\n",maxmb);
+        return 1;        
+    }    
+        
+    // let's go...    
+    for (i = 0 ; i < numFiles; i++)
+    {
+        sprintf(cmd_zipalign,checkit,list[i]);
+        if(0 == __system(cmd_zipalign)){
+            //ui_print("Skipping %s\n",list[i]);
+            zcount = zcount +1;
+        }else{
+            ui_print("Zipaligning %s...\n",list[i]);        
+            sprintf(cmd_zipalign,doit,list[i],list[i]);
+            if(0 == __system(cmd_zipalign)){
+                //ui_print("Align: success\n",list[i]);
+                sprintf(cmd_zipalign,copyit,list[i],list[i]);
+                if(0 == __system(cmd_zipalign)){
+                    //ui_print("Copyback: success %s\n",list[i]);
+                    sprintf(cmd_zipalign,chmodit,list[i]);
+                    if(0 == __system(cmd_zipalign)){
+                        //ui_print("Chmod 644: sucess\n",list[i]);
+                    }else{
+                        ui_print("Chmod 644 failed...\n");                    
+                    }
+                }else{
+                    ui_print("Copying back failed, skipping...\n");
+                }
+                sprintf(cmd_zipalign,removeit,list[i]);
+                __system(cmd_zipalign);       
+            }else{
+                ui_print("Zipaligning failed, skipping...\n");
+                sprintf(cmd_zipalign,removeit,list[i]);
+                __system(cmd_zipalign);       
+            }
+        }
+    }
+
+    ui_print("Removing temp dir /sdcard/midnight_zipalign...\n");
+    sprintf(tempdir,"rm -r /sdcard/midnight_zipalign"); 
+    if(0 != __system(tempdir)){
+        ui_print("Failed to to remove /sdcard/midnight_zipalign, exiting...\n",tempdir);
+        return 1;
+    }    
+    ui_print("Already zipaligned, skipped: %i\n",zcount);
+    ui_print("Done.\n");
+    free_string_array(list);
+    free_string_array(files);
+    return 0;
+}
+
+void zipalign_menu() {
+    static char* headers[] = {  "ZIPALIGN",
+                                "Zipalign packages in chosen directory",
+                                "for faster loading and execution time...",
+                                NULL
+    };
+
+    static char* list[] = { "Zipalign packages in /system/app",
+                            "Zipalign packages in /system/framework",
+                            "Zipalign packages in /data/app",
+                            NULL
+    };
+
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+            case 0:
+              if (confirm_selection("Confirm zipaligning in /system/app","Yes - zipalign in /system/app")) {
+                apply_zipalign("/system/app/");
+              }
+              break;
+            case 1:
+              if (confirm_selection("Confirm zipaligning in /system/framework","Yes - zipalign in /system/framework")) {
+                apply_zipalign("/system/framework/");
+              }
+              break;
+            case 2:
+              if (confirm_selection("Confirm zipaligning in /data/app","Yes - zipalign in /data/app")) {
+                apply_zipalign("/data/app/");
+              }
+              break;
+        }
+    }
+
+}
+
 void show_advanced_menu() {
     static char* headers[] = {  "MIDNIGHT ADVANCED OPTIONS",
                                 NULL
@@ -1093,6 +1344,7 @@ void show_advanced_menu() {
                             "Lowmemorykiller options...",
                             "Video driver options...",
                             "Misc. options/modules loading...",
+                            "Zipalign packages...",
                             NULL
     };
     for (;;)
@@ -1136,6 +1388,11 @@ void show_advanced_menu() {
               {
                 modules_menu(1200);
                 break;
+              }
+              case 7:
+              {
+                zipalign_menu();
+                break;    
               }
        }
     }

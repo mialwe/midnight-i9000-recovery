@@ -24,6 +24,7 @@ void remove_root_from_device(void);
 void apply_root_to_device(void);
 void show_root_menu(void);
 void show_advanced_menu(void);
+int apply_appbackup(void);
 int get_partition_free(const char *partition);
 int file_exists(const char *filename);
 int show_file_exists(const char *pre, const char *filename, const char *ui_filename, const char *post, const char *post_no);

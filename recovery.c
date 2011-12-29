@@ -717,6 +717,7 @@ void backup_menu(){
                             "Backup start/shutdown sounds",
                             "Backup Midnight configfiles",
                             "Backup SystemUI / framework-res",
+                            "Backup /data/app tp SDCARD",
                             NULL
     };
     
@@ -828,7 +829,13 @@ void backup_menu(){
                     }
                     break;
                   }
-
+          case 7:
+          {
+            if (confirm_selection("Confirm backup /data/app","Yes - backup APKs to SDCARD")) {  
+                apply_appbackup();                
+            }
+            break;
+          }
         }
     }
 }
@@ -1003,7 +1010,7 @@ void cleanup_menu(){
                             "Delete Facebook/Twitter sync (~0.7Mb)",
                             "Delete some fonts (~3Mb)",
                             "Delete Samsung Widgets (~3.7Mb)",
-                            "Delete MIALWE preset (~52Mb)",
+                            "Delete a lot of bloat/software (~52Mb)",
                             NULL
     };
     
@@ -1012,9 +1019,12 @@ void cleanup_menu(){
       
     ui_print("\nBloatware-cleanup info\n");
     ui_print("------------------\n");
-    ui_print("The last 7 delete options (bloatware,...)\n");
-    ui_print("will give you a list of all packages to be\n");
-    ui_print("deleted from /system before confirmation.\n");
+    ui_print("THE LAST 7 OPTIONS REMOVE BLOATWARE\n");
+    ui_print("AND POTENTIALLY UNNEDED SOFTWARE!\n");
+    ui_print("The options will display a list of\n");
+    ui_print("all packages which will be deleted.\n");
+    ui_print("Be sure to read this list before\n");
+    ui_print("you confirm.\n");
     ui_print("A Nandroid-SYSTEM backup might be useful\n");
     ui_print("as there will be no apk/odex backup.\n");
     ui_print("------------------\n");
