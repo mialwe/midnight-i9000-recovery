@@ -858,6 +858,7 @@ void restore_menu(){
                             "Restore start/shutdown sounds",
                             "Restore Midnight configfiles",
                             "Restore SystemUI / framework-res",
+                            "Restore /data/app from SDCARD",
                             NULL
     };
     
@@ -968,7 +969,13 @@ void restore_menu(){
                     }
                     break;
                   }
-
+              case 8:
+              {
+                if (confirm_selection("Confirm installing apps from SDCARD","Yes - install apps to /data/app")) {  
+                    apply_apprestore();                
+                }
+                break;
+              }
         }
     }
 }

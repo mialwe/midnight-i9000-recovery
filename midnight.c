@@ -1080,10 +1080,24 @@ void lmk_menu() {
     }
 }
 
+/*
+char *get_filename_from_path(char *p){
+    char *ret = NULL;
+    char *slash = NULL;
+    slash = strrchr(p, '/');
+    if (slash) {
+        sprintf(ret,"%s", slash + 1);
+        return(ret);
+    }
+    return NULL;
+}
+*/
+
 int apply_appbackup(void)
 {
     char path[PATH_MAX] = "";
     char tmp[PATH_MAX] ="";
+    char *fname = NULL;
     int numFiles = 0;
     int i = 0;
     unsigned int freemb = 0;
@@ -1137,7 +1151,7 @@ int apply_appbackup(void)
         LOGI("Filesize: %i\n",filedata.st_size);       
             maxmb = maxmb + filedata.st_size;
     }
-    
+
     // check available space...
     if(maxmb >= freemb){
         ui_print("Not enough space on /sdcard, please\n");
@@ -1149,10 +1163,12 @@ int apply_appbackup(void)
     for (i = 0 ; i < numFiles; i++)
     {
         sprintf(tmp,"cp %s /sdcard/midnight_appbackup/",list[i]);
+        fname = &list[i][10];
+        printf ("Filename: %s\n", fname);
         if(0 == __system(tmp)){
-            ui_print("Backing up %s\n",list[i]);
+            ui_print("Backing up %s\n",fname);
         }else{
-            ui_print("Error backing up %s\n",list[i]);        
+            ui_print("Error backing up %s\n",fname);        
         }
     }
 
@@ -1161,6 +1177,89 @@ int apply_appbackup(void)
     free_string_array(files);
     return 0;
 }
+
+int apply_apprestore(void)
+{
+    char path[PATH_MAX] = "";
+    char tmp[PATH_MAX] ="";
+    int numFiles = 0;
+    int i = 0;
+    unsigned int freemb = 0;
+    unsigned int maxmb = 0;
+    struct stat filedata;
+        
+    ui_print("\nStarting backup of /data/app...\n");
+
+    // we need our target...
+    LOGI("/data/app restore requested, mounting...\n");
+    if(0 != ensure_path_mounted("/data")){
+        ui_print("Failed to mount /data, exiting...\n");
+        return 1;
+    }
+
+    // we need our packages...
+    if(0 != ensure_path_mounted("/sdcard")){
+        ui_print("Failed to mount /sdcard, exiting...\n");
+        return 1;
+    }
+            
+    // get files
+    char** files = gather_files("/sdcard/midnight_appbackup/",".apk", &numFiles);
+    // bail out if nothing found
+    if (numFiles <= 0)
+    {
+        ui_print("No files found, exiting.\n");
+        return 1;
+    }
+
+    // create directory...   
+    ui_print("Creating dir /data/app...\n");
+    sprintf(tmp,"mkdir -p /data/app"); 
+    if(0 != __system(tmp)){
+        ui_print("Failed to to execute %s, exiting...\n",tmp);
+        return 1;
+    }
+    
+    char** list = (char**) malloc((numFiles + 1) * sizeof(char*));
+    list[numFiles] = NULL;
+    
+    freemb=get_partition_free("/data")*1048576; // free Mb in byte
+    LOGI("Free Mb on /data: %i\n",freemb);
+    for (i = 0 ; i < numFiles; i++)
+    {
+        list[i] = strdup(files[i]);
+        if (stat(list[i], &filedata) < 0) {
+           LOGE("Error stat'ing %s: %s\n", list[i], strerror(errno));
+           return 1;
+        }
+        LOGI("Filesize: %i\n",filedata.st_size);       
+            maxmb = maxmb + filedata.st_size;
+    }
+    
+    // check available space...
+    if(maxmb >= freemb){
+        ui_print("Not enough space on /data, please\n");
+        ui_print("free at least %i Mb, exiting...\n",(maxmb/1024/1024));
+        return 1;        
+    }    
+        
+    // let's go...    
+    for (i = 0 ; i < numFiles; i++)
+    {
+        sprintf(tmp,"busybox install %s /data/app",list[i]);
+        if(0 == __system(tmp)){
+            ui_print("Installed %s\n",list[i]);
+        }else{
+            ui_print("Error installing %s\n",list[i]);        
+        }
+    }
+
+    ui_print("Done.\n");
+    free_string_array(list);
+    free_string_array(files);
+    return 0;
+}
+
 
 int apply_zipalign(const char* directory)
 {
