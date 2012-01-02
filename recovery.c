@@ -1437,8 +1437,14 @@ prompt_and_wait() {
             case ITEM_ROOT:
                show_root_menu();
                 break;
-            case ITEM_ADVANCED:
-                show_advanced_menu();
+            case ITEM_MIDNIGHT:
+                show_midnight_menu();
+                break;
+            case ITEM_UV:
+                show_cpu_uv_menu();
+                break;
+            case ITEM_ZIPALIGN:
+                show_zipalign_menu();
                 break;
             /*
              * MIDNIGHT: Advanced menu temporarily disabled

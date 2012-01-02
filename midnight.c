@@ -544,113 +544,9 @@ void custom_menu(
     }
 }
 
-void lmk_preset_menu() {
+void show_midnight_menu() {
     const char* h[]={   
-        "CONFIGURE LOWMEMORYKILLER VALUES",
-        "",
-        "",
-        NULL};
-     //# 6,9,13,48,60,70    
-    const char* m[]={   
-        "[0] 6,9,13,48,60,70Mb (MIDNIGHT)",
-        "[1] 8,12,16,24,28,32Mb (NEXUS S)",
-		"[2] 8,16,24,28,36,42Mb",
-		"[3] 8,16,24,36,48,56Mb",
-		"[4] 8,16,30,48,56,68Mb",
-        "[5] 8,16,30,56,68,88Mb",
-        "[6] 8,16,30,62,74,96Mb",
-        NULL};
-    int num=7;
-    const char* cnfv[]={"LMK0","LMK1","LMK2","LMK3","LMK4","LMK5","LMK6" };
-    const char* cnff="/system/etc/midnight_lmk.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void lmk_slot_mb_menu(int slot) {
-    int num=20;
-    const char* cnfv[]={"001","002","003","004","005","006","007","008","009","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
-    const char* m[]={   
-        "001",
-        "002",
-        "003",
-        "004",
-        "005",
-        "006",
-        "007",
-        "008",
-        "009",
-        "010",
-        "020",
-        "030",
-        "040",
-        "050",
-        "060",
-        "070",
-        "080",
-        "090",
-        "100",
-        "don't override PRESET value",        
-        NULL};
-
-    if (slot == 1){
-        const char* h[]={   
-            "SLOT1: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot1.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (slot == 2){
-        const char* h[]={   
-            "SLOT2: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot2.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (slot == 3){
-        const char* h[]={   
-            "SLOT3: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot3.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (slot == 4){
-        const char* h[]={   
-            "SLOT4: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot4.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (slot == 5){
-        const char* h[]={   
-            "SLOT5: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot5.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (slot == 6){
-        const char* h[]={   
-            "SLOT6: SELECT LOWMEMORYKILLER VALUE",
-            "multiple selections possible, values will be",
-            "added (e.g. 5+20=25Mb)...",
-            NULL};
-        const char* cnff="/system/etc/midnight_lmk_slot6.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-}
-
-void modules_menu() {
-    const char* h[]={   
-        "CONFIGURE MISC./MODULE LOADING",
+        "CONFIGURE MISC. SETTINGS",
         "",
         "",
         NULL};
@@ -660,53 +556,18 @@ void modules_menu() {
 		"Toggle TUN module loading (VPN)",
         "Toggle IPv4/IPv6 security",
         "Toggle init.d support",
-        "Toggle NO-autoROOT",
-        "Toggle NO-MidnightTweaks",
+        "Toggle 1.2Ghz frequency",
+        "Toggle IO scheduler: NOOP",
+        "Toggle CPU governor: ONDEMAND",
+        "Toggle touchscreen tweak",
+        "Toggle NO-autoROOT-mode",
         NULL};
-    int num=7;
-    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "NOAUTOROOT", "NOTWEAKS" };
+    int num=10;
+    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "OC", "NOOP", "ONDEMAND", "TOUCH", "NOAUTOROOT"};
     const char* cnff="/system/etc/midnight_misc.conf";
     custom_menu(h,m,num,cnfv,cnff,0);
 }
 
-void gfx_menu() {
-    const char* h[]={   
-        "CONFIGURE GFX OPTIONS",
-        "",
-        "",
-        NULL};
-    const char* m[]={   
-        "Enable color mode MIDNIGHT [default]",
-        "Enable color mode COLD",
-        "Enable color mode WARM",
-        NULL};
-    int num=3;
-    const char* cnfv[]={"MIDNIGHT","COLD","WARM"};
-    const char* cnff="/system/etc/midnight_gfx.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void readahead_menu() {
-    const char* h[]={   
-        "SELECT SDCARD READ_AHEAD VALUE",
-        "Default=512kB, higher values may result",
-        "in faster sdcard read actions.",
-        NULL};
-    const char* m[]={   
-        "[0] 64kB",
-        "[1] 128kB",
-        "[2] 256kB",
-        "[3] 512kB [default]",
-        "[4] 1024kB",
-        "[5] 2048kB",
-        "[6] 3064kB",
-        "[7] 4096kB",
-        NULL};
-    int num=8;
-    const char* cnfv[]={"READAHEAD_64","READAHEAD_128","READAHEAD_256","READAHEAD_512","READAHEAD_1024","READAHEAD_2048","READAHEAD_3064","READAHEAD_4096"};
-    const char* cnff="/system/etc/midnight_rh.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
 void create_backup_dirs() {
   ensure_path_mounted("/data");
   __system("mkdir -p /data/midnight");
@@ -718,154 +579,9 @@ void create_backup_dirs() {
   __system("mkdir -p /data/midnight/backups/bootanimation");
   __system("mkdir -p /data/midnight/backups/bootanimation/local");
   __system("mkdir -p /data/midnight/backups/bootanimation/system");
-  //__system("mkdir -p /data/midnight/backups/voltage-control");
-  //__system("mkdir -p /data/midnight/backups/localprop");
 }
 
-void touch_menu() {
-    const char* h[]={   
-        "SELECT TOUCHSCREEN SENSITIVITY",
-        "",
-        "",
-        NULL};
-    const char* m[]={   
-        "Stock values [default]",
-        "Sensitivity +",
-        "Sensitivity ++",
-        "Sensitivity +++",
-        NULL};
-    int num=4;
-    const char* cnfv[]={"TOUCH_DEFAULT","TOUCH_PLUS1","TOUCH_PLUS2","TOUCH_PLUS3"};
-    const char* cnff="/system/etc/midnight_touch.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void cpu_max_menu() {
-    const char* h[]={   
-        "SELECT CPU MAX FREQUENCY",
-        "Limit your CPU frequency to preserve",
-        "battery life. Brackets = (arm.volt/internal volt).",
-        NULL};
-    const char* m[]={   
-        "400Mhz",
-        "800Mhz",
-        "1000Mhz [default]",
-        "1200Mhz",
-        NULL};
-    int num=4;
-    const char* cnfv[]={"CPU_MAX_400","CPU_MAX_800","CPU_MAX_1000","CPU_MAX_1200"};
-    const char* cnff="/system/etc/midnight_cpu_max.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void cpu_gov_menu() {
-    const char* h[]={   
-        "SELECT CPU GOVERNOR",
-        "Change CPU frequency scaling method...",
-        "",
-        NULL};
-    const char* m[]={   
-        "CONSERVATIVE -> less battery [default]",
-        "ONDEMAND     -> more responsive",
-        NULL};
-    int num=2;
-    const char* cnfv[]={"CPU_GOV_CONSERVATIVE","CPU_GOV_ONDEMAND"};
-    const char* cnff="/system/etc/midnight_cpu_gov.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void IO_sched_menu() {
-    const char* h[]={   
-        "SELECT IO SCHEDULER",
-        "",
-        "",
-        NULL};
-    const char* m[]={   
-        "NOOP [default]",
-        "SIO",
-        NULL};
-    int num=3;
-    const char* cnfv[]={"IO_SCHED_NOOP","IO_SCHED_SIO"};
-    const char* cnff="/system/etc/midnight_io_sched.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void cpu_uv_freq_menu(int freq) {
-    int num=13;
-    const char* cnfv[]={"000","005","010","020","030","040","050","060","070","080","090","100","NOOVERRIDE"};
-    const char* m[]={   
-        "000 [default]",
-        "005",
-        "010",
-        "020",
-        "030",
-        "040",
-        "050",
-        "060",
-        "070",
-        "080",
-        "090",
-        "100",
-        "don't override PRESET value",        
-        NULL};
-
-    if (freq == 100){
-        const char* h[]={   
-            "100MHZ: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_100.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (freq == 200){
-        const char* h[]={   
-            "200MHZ: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_200.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (freq == 400){
-        const char* h[]={   
-            "400MHZ: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_400.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (freq == 800){
-        const char* h[]={   
-            "800MHZ: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_800.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (freq == 1000){
-        const char* h[]={   
-            "1000Mhz: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_1000.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-    if (freq == 1200){
-        const char* h[]={   
-            "1200Mhz: SELECT CPU UNDERVOLTING VALUES",
-            "multiple selections possible, values will be",
-            "added (e.g. (-5)+(-20)=-25mV...",
-            NULL};
-        const char* cnff="/system/etc/midnight_cpu_uv_1200.conf";
-        custom_menu(h,m,num,cnfv,cnff,0);
-    }
-}
-
-void cpu_uv_menu() {
+void show_cpu_uv_menu() {
     const char* h[]={   
         "SELECT CPU UNDERVOLTING mV VALUES",
         "Lower values can save battery, too low",
@@ -874,224 +590,16 @@ void cpu_uv_menu() {
         "MANUAL SETTINGS OVERRIDE PRESETS.",
         NULL};
     const char* m[]={   
-        "[ 0]  0/ 0/ 0/  0/  0/  0",
-        "[ 1]  0/ 0/ 0/ 25/ 25/ 50",
-        "[ 2]  0/ 0/25/ 25/ 50/ 50",
-        "[ 3]  0/ 0/25/ 25/ 50/100",
-        "[ 4]  0/ 0/25/ 50/100/100",
-        "[ 5]  0/ 0/25/ 75/100/125",
-        "[ 6]  0/ 0/25/ 50/100/125",
-        "[ 7]  0/ 0/25/ 50/125/125",
-        "[ 8]  0/ 0/25/100/125/150",
-        "[ 9]  0/ 0/50/100/125/150",
-        "[10]  0/15/50/ 50/100/125",
-        "[11]  5/25/50/ 75/125/150",
-        "[12] 10/15/50/ 75/125/150",
-        "[13] 15/25/50/ 75/125/150",
-        "[14] 10/15/50/ 75/125/175",
-        "[15] 15/25/75/100/150/175",
+        "[ 0]  No undervolting",
+        "[ 1]  0 / 15/ 25/ 50/ 50/ 75",
+        "[ 2]  15/ 20/ 50/ 75/100/100",
+        "[ 3]  20/ 25/ 50/ 75/100/125",
         NULL};
-    int num=16;
-    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3","CPU_UV_4","CPU_UV_5","CPU_UV_6","CPU_UV_7","CPU_UV_8","CPU_UV_9","CPU_UV_10","CPU_UV_11","CPU_UV_12","CPU_UV_13","CPU_UV_14","CPU_UV_15"};
+    int num=4;
+    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3"};
     const char* cnff="/system/etc/midnight_cpu_uv.conf";
     custom_menu(h,m,num,cnfv,cnff,1);
 }
-
-void cpu_menu() {
-    static char* headers[] = {  "CPU OPTIONS",
-                                "Configure CPU max. frequency, governor and",
-                                "customize undervolting values for better "
-                                "battery life and device temperature...",
-                                NULL
-    };
-    static char* list[] = { "Select CPU max. frequency...",
-                            "Select CPU governor...",
-                            "Select CPU undervolting preset...",
-                            "Setup CPU undervolting 1200Mhz...",
-                            "Setup CPU undervolting 1000Mhz...",
-                            "Setup CPU undervolting 800Mhz...",
-                            "Setup CPU undervolting 400Mhz...",
-                            "Setup CPU undervolting 200Mhz...",
-                            "Setup CPU undervolting 100Mhz...",
-                            "Reset CPU undervolting defaults...",
-                            NULL
-    };
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-              case 0:
-              {
-                cpu_max_menu();
-                break;
-              }
-              case 1:
-              {
-                cpu_gov_menu();
-                break;
-              }
-              case 2:
-              {
-                cpu_uv_menu();
-                break;
-              }
-              case 3:
-              {
-                cpu_uv_freq_menu(1200);
-                break;
-              }
-              case 4:
-              {
-                cpu_uv_freq_menu(1000);
-                break;
-              }
-              case 5:
-              {
-                cpu_uv_freq_menu(800);
-                break;
-              }
-              case 6:
-              {
-                cpu_uv_freq_menu(400);
-                break;
-              }
-              case 7:
-              {
-                cpu_uv_freq_menu(200);
-                break;
-              }
-               case 8:
-              {
-                cpu_uv_freq_menu(100);
-                break;
-              }
-               case 9:
-              {
-                if (confirm_selection("Confirm deleting undervolting settings","Yes - delete ALL undervolting settings")) {  
-                  ensure_path_mounted("/system");
-                  ui_print("\nDeleting stored preset...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv.conf");                
-                  ui_print("Deleting stored 1300Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_1300.conf");                
-                  ui_print("Deleting stored 1200Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_1200.conf");                
-                  ui_print("Deleting stored 1000Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_1000.conf");                
-                  ui_print("Deleting stored 800Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_800.conf");                
-                  ui_print("Deleting stored 400Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_400.conf");                
-                  ui_print("Deleting stored 200Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_200.conf");                
-                  ui_print("Deleting stored 100Mhz value...\n");
-                  __system("rm -rf /system/etc/midnight_cpu_uv_100.conf");                
-                  ui_print("Done.\n");
-                }
-                break;
-              }
-       }
-    }
-}
-void lmk_menu() {
-    static char* headers[] = {  "LOWMEMORYKILLER OPTIONS",
-                                "Select LMK preset or build own value which",
-                                "may override preset individual values...",
-                                NULL
-    };
-    static char* list[] = { "Select LMK preset",
-                            "Setup LMK Slot 1 value (Mb)",
-                            "Setup LMK Slot 2 value (Mb)",
-                            "Setup LMK Slot 3 value (Mb)",
-                            "Setup LMK Slot 4 value (Mb)",
-                            "Setup LMK Slot 5 value (Mb)",
-                            "Setup LMK Slot 6 value (Mb)",
-                            "Reset LMK default settings",
-                            NULL
-    };
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-              case 0:
-              {
-				lmk_preset_menu();
-                break;
-              }
-              case 1:
-              {
-			    lmk_slot_mb_menu(1);
-                break;
-              }
-              case 2:
-              {
-			    lmk_slot_mb_menu(2);
-                break;
-              }
-              case 3:
-              {
-			    lmk_slot_mb_menu(3);
-                break;
-              }
-              case 4:
-              {
-			    lmk_slot_mb_menu(4);
-                break;
-              }
-              case 5:
-              {
-			    lmk_slot_mb_menu(5);
-                break;
-              }
-              case 6:
-              {
-			    lmk_slot_mb_menu(6);
-                break;
-              }
-               case 7:
-              {
-                if (confirm_selection("Confirm deleting LMK settings","Yes - delete ALL LMK settings")) {  
-                  ensure_path_mounted("/system");
-                  ui_print("\nDeleting stored preset...\n");
-                  __system("rm -rf /system/etc/midnight_lmk.conf");                
-                  ui_print("Deleting stored slot1 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot1.conf");                
-                  ui_print("Deleting stored slot2 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot2.conf");                
-                  ui_print("Deleting stored slot3 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot3.conf");                
-                  ui_print("Deleting stored slot4 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot4.conf");                
-                  ui_print("Deleting stored slot5 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot5.conf");                
-                  ui_print("Deleting stored slot6 value...\n");
-                  __system("rm -rf /system/etc/midnight_lmk_slot6.conf");                
-                  ui_print("Done.\n");
-                }
-                break;
-              }
-
-        }
-    }
-}
-
-/*
-char *get_filename_from_path(char *p){
-    char *ret = NULL;
-    char *slash = NULL;
-    slash = strrchr(p, '/');
-    if (slash) {
-        sprintf(ret,"%s", slash + 1);
-        return(ret);
-    }
-    return NULL;
-}
-*/
 
 int apply_appbackup(void)
 {
@@ -1164,11 +672,9 @@ int apply_appbackup(void)
     {
         sprintf(tmp,"cp %s /sdcard/midnight_appbackup/",list[i]);
         fname = &list[i][10];
-        printf ("Filename: %s\n", fname);
-        if(0 == __system(tmp)){
-            ui_print("Backing up %s\n",fname);
-        }else{
-            ui_print("Error backing up %s\n",fname);        
+        ui_print("Backing up %s...\n",fname);
+        if(0 != __system(tmp)){
+            ui_print("Failed!\n",fname);        
         }
     }
 
@@ -1184,6 +690,7 @@ int apply_apprestore(void)
     char tmp[PATH_MAX] ="";
     int numFiles = 0;
     int i = 0;
+    char *fname = NULL;
     unsigned int freemb = 0;
     unsigned int maxmb = 0;
     struct stat filedata;
@@ -1247,10 +754,10 @@ int apply_apprestore(void)
     for (i = 0 ; i < numFiles; i++)
     {
         sprintf(tmp,"busybox install %s /data/app",list[i]);
-        if(0 == __system(tmp)){
-            ui_print("Installed %s\n",list[i]);
-        }else{
-            ui_print("Error installing %s\n",list[i]);        
+        fname = &list[i][26];  
+        ui_print("Installing %s...\n",fname);
+        if(0 != __system(tmp)){
+            ui_print("Failed!\n",fname);        
         }
     }
 
@@ -1270,7 +777,7 @@ int apply_zipalign(const char* directory)
     char copyit[PATH_MAX] = "cp -p /sdcard/midnight_zipalign%s %s";
     char removeit[PATH_MAX] = "rm /sdcard/midnight_zipalign%s";
     char chmodit[PATH_MAX] = "chmod 644 %s";
-    
+    char *fname = NULL;
     char cmd_zipalign[PATH_MAX] ="";
     int numFiles = 0;
     int i = 0;
@@ -1349,11 +856,12 @@ int apply_zipalign(const char* directory)
     for (i = 0 ; i < numFiles; i++)
     {
         sprintf(cmd_zipalign,checkit,list[i]);
+        fname = &list[i][strlen(directory)];
         if(0 == __system(cmd_zipalign)){
             //ui_print("Skipping %s\n",list[i]);
             zcount = zcount +1;
         }else{
-            ui_print("Zipaligning %s...\n",list[i]);        
+            ui_print("Zipaligning %s...\n",fname);        
             sprintf(cmd_zipalign,doit,list[i],list[i]);
             if(0 == __system(cmd_zipalign)){
                 //ui_print("Align: success\n",list[i]);
@@ -1392,7 +900,7 @@ int apply_zipalign(const char* directory)
     return 0;
 }
 
-void zipalign_menu() {
+void show_zipalign_menu() {
     static char* headers[] = {  "ZIPALIGN",
                                 "Zipalign packages in chosen directory",
                                 "for faster loading and execution time...",
@@ -1430,69 +938,4 @@ void zipalign_menu() {
         }
     }
 
-}
-
-void show_advanced_menu() {
-    static char* headers[] = {  "MIDNIGHT ADVANCED OPTIONS",
-                                NULL
-    };
-    static char* list[] = { "CPU options...",
-                            "IO scheduler options...",
-                            "READ_AHEAD options...",
-                            "Touch sensitivity options...",
-                            "Lowmemorykiller options...",
-                            "Video driver options...",
-                            "Misc. options/modules loading...",
-                            "Zipalign packages...",
-                            NULL
-    };
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-              case 0:
-              {
-                cpu_menu();
-                break;
-              }
-              case 1:
-              {
-                IO_sched_menu();
-                break;
-              }
-              case 2:
-              {
-                readahead_menu();
-                break;
-              }
-              case 3:
-              {
-                touch_menu();
-                break;
-              }
-              case 4:
-              {
-                lmk_menu();
-                break;
-              }
-              case 5:
-              {
-                gfx_menu(1300);
-                break;
-              }
-              case 6:
-              {
-                modules_menu(1200);
-                break;
-              }
-              case 7:
-              {
-                zipalign_menu();
-                break;    
-              }
-       }
-    }
 }

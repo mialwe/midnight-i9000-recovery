@@ -31,25 +31,6 @@ char* MENU_HEADERS[] = { NULL };
  * - find place for advanced options
  * - find place for update-zip install
  */
- #if 0
-char* MENU_ITEMS[] = { "Reboot",                    // 0
-                       "Reboot to recovery",        // 1
-                       "Reboot to download",        // 2
-                       "Shutdown",                  // 3                       
-                       "Install zip from sdcard...",// 4
-                       "Partition menu...",         // 5
-                       "Nandroid backup/restore/delete...",// 6
-                       "Wipe and cleanup menu...",  // 7
-                       "Install Busybox/ROOT...",    // 8
-                       "Options: video driver...",   // 9
-                       "Options: misc./module loading...",       // 10
-                       "Options: lowmemorykiller...",// 11
-                       "Options: IO scheduler...",   // 12
-                       "Options: READ_AHEAD...",     // 13
-                       "Options: CPU/UV/OC...",      // 14
-                       NULL };
-#endif
-
 char* MENU_ITEMS[] = { "Reboot",                    // 0
                        "Reboot to recovery",        // 1
                        "Reboot to download",        // 2
@@ -60,7 +41,9 @@ char* MENU_ITEMS[] = { "Reboot",                    // 0
                        "CLEANUP / wipe menu...",  // 7
                        "RESTORE menu ...",    // 8
                        "Root / unRoot / Busybox menu...", // 9
-                       "Advanced options menu...",   // 10
+                       "Midnight options menu...",   // 10
+                       "CPU undervolting menu...",   // 11
+                       "Zipalign tool menu...",   // 12
                        NULL };
 
 int device_recovery_start() {

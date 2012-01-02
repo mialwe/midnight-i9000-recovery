@@ -76,7 +76,9 @@ int device_wipe_data();
 #define ITEM_CLEANUP         7
 #define ITEM_RESTORE         8
 #define ITEM_ROOT            9
-#define ITEM_ADVANCED        10
+#define ITEM_MIDNIGHT        10
+#define ITEM_UV              11
+#define ITEM_ZIPALIGN        12
 
 
 // Header text to display above the main menu.
