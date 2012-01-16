@@ -544,61 +544,12 @@ void custom_menu(
     }
 }
 
-void show_midnight_menu() {
-    const char* h[]={   
-        "CONFIGURE MISC. SETTINGS",
-        "",
-        "",
-        NULL};
-    const char* m[]={   
-        "Toggle CIFS module loading (filesystem)",
-		"Toggle LOGGER module loading (logcat)",
-		"Toggle TUN module loading (VPN)",
-        "Toggle IPv4/IPv6 security",
-        "Toggle init.d support",
-        "Toggle 1.2Ghz frequency",
-        "Toggle IO scheduler: NOOP",
-        "Toggle CPU governor: ONDEMAND",
-        "Toggle touchscreen tweak",
-        "Toggle NO-autoROOT-mode",
-        NULL};
-    int num=10;
-    const char* cnfv[]={"CIFS","ANDROIDLOGGER","TUN", "IPV6PRIVACY", "INIT_D", "OC", "NOOP", "ONDEMAND", "TOUCH", "NOAUTOROOT"};
-    const char* cnff="/system/etc/midnight_misc.conf";
-    custom_menu(h,m,num,cnfv,cnff,0);
-}
-
 void create_backup_dirs() {
   ensure_path_mounted("/data");
   __system("mkdir -p /data/midnight");
   __system("mkdir -p /data/midnight/backups");
-  __system("mkdir -p /data/midnight/backups/initd");
   __system("mkdir -p /data/midnight/backups/sounds");
-  __system("mkdir -p /data/midnight/backups/theme");
   __system("mkdir -p /data/midnight/backups/midnight-conf");
-  __system("mkdir -p /data/midnight/backups/bootanimation");
-  __system("mkdir -p /data/midnight/backups/bootanimation/local");
-  __system("mkdir -p /data/midnight/backups/bootanimation/system");
-}
-
-void show_cpu_uv_menu() {
-    const char* h[]={   
-        "SELECT CPU UNDERVOLTING mV VALUES",
-        "Lower values can save battery, too low",
-        "values can cause system instability...",
-        "Values:1200/1000/800/400/200/100Mhz.",
-        "MANUAL SETTINGS OVERRIDE PRESETS.",
-        NULL};
-    const char* m[]={   
-        "[ 0]  No undervolting",
-        "[ 1]  0 / 15/ 25/ 50/ 50/ 75",
-        "[ 2]  15/ 20/ 50/ 75/100/100",
-        "[ 3]  20/ 25/ 50/ 75/100/125",
-        NULL};
-    int num=4;
-    const char* cnfv[]={"CPU_UV_0","CPU_UV_1","CPU_UV_2","CPU_UV_3"};
-    const char* cnff="/system/etc/midnight_cpu_uv.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
 }
 
 int apply_appbackup(void)
@@ -939,3 +890,46 @@ void show_zipalign_menu() {
     }
 
 }
+
+void show_misc_menu() {
+    static char* headers[] = {  "Misc. options",
+                                NULL
+    };
+
+    static char* list[] = { "Fix permissions",
+                            "Zipalign",
+                            "Block kernel-app values next boot",
+                            NULL
+    };
+
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+            case 0:
+              if (confirm_selection("Confirm zipaligning in /data/app","Yes - zipalign in /data/app")) {
+                ui_print("\nFixing permissions...\n");
+                ensure_path_mounted("/system");
+                ensure_path_mounted("/data");
+                __system("fix_permissions");
+                ui_print("Done!\n");
+                }
+              break;
+            case 1:
+              show_zipalign_menu();
+              break;
+            case 2:
+                if(0 != __system("/sbin/busybox touch /data/local/block-midnight-control")){
+                    ui_print("\nFailed to create blocker file.\n");
+                }else{
+                    ui_print("\nCreated blocker file, Midnight will\n");                    
+                    ui_print("ignore app settings on next boot.\n");
+                }
+              }
+              break;
+        }
+    }
+

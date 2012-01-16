@@ -713,10 +713,7 @@ void backup_menu(){
     static char* list[] = { "Nandroid backup FULL",
                             "Nandroid backup SYSTEM",
                             "Nandroid backup DATA",
-                            "Backup custom bootanimations",
                             "Backup start/shutdown sounds",
-                            "Backup Midnight configfiles",
-                            "Backup SystemUI / framework-res",
                             "Backup /data/app tp SDCARD",
                             NULL
     };
@@ -748,32 +745,6 @@ void backup_menu(){
                 nandroid_backup_selective(backup_path,2); // data / datadata
                 break;              
           case 3:
-          {
-            if (confirm_selection("Confirm backup custom bootanimations","Yes - backup custom bootanimations")) {  
-            ensure_path_mounted("/system");
-            ensure_path_mounted("/data");
-              ui_print("\nSearching bootanimations......\n");
-              if( show_file_exists("Original","/data/local/bootanimation.zip","bootanimation.zip (data):","found.", "not found.") ||
-                show_file_exists("Original","/data/local/sanim.zip","sanim.zip (data):","found.", "not found.") ||
-                show_file_exists("Original","/data/local/bootanimation.bin","bootanimation.bin (data):","found.", "not found.") ||
-                show_file_exists("Original","/system/media/bootanimation.zip","bootanimation.zip (system):","found.", "not found.") ||
-                show_file_exists("Original","/system/media/sanim.zip","sanim.zip (system):","found.", "not found.") ){
-                    ui_print("Cleaning backup directories...\n");
-                    __system("rm -r /data/midnight/backups/bootanimation/local/*");                
-                    __system("rm -r /data/midnight/backups/bootanimation/system/*");                
-                    ui_print("Backup bootanimations...\n");
-                    ui_print("Backup to /data/midnight/backups/...\n");
-                    __system("cp /data/local/bootanimation.zip /data/midnight/backups/bootanimation/local");                
-                    __system("cp /data/local/sanim.zip /data/midnight/backups/bootanimation/local");                
-                    __system("cp /data/local/bootanimation.bin /data/midnight/backups/bootanimation/local");                
-                    __system("cp /system/media/bootanimation.zip /data/midnight/backups/bootanimation/system");                
-                    __system("cp /system/media/sanim.zip /data/midnight/backups/bootanimation/system");                
-                    ui_print("Done.\n");
-                }
-            }
-            break;
-          }
-          case 4:
                 {
                     ensure_path_mounted("/system");
                     ensure_path_mounted("/data");
@@ -796,42 +767,7 @@ void backup_menu(){
                     }
                     break;
                   }
-          case 5:
-                  {
-                    ensure_path_mounted("/system");
-                    ensure_path_mounted("/data");
-                    if (confirm_selection("Confirm backup Midnight conf files","Yes - backup Midnight config files")) {  
-                      ui_print("\nCleaning backup directory...\n");
-                      __system("rm -r /data/midnight/backups/midnight-conf/*");                                      
-                      ui_print("Backup to /data/midnight/backups/midnight-conf...\n");
-                      ui_print("Backup Midnight configfiles...\n");
-                      __system("cp /system/etc/midnight_*.conf /data/midnight/backups/midnight-conf");
-                      ui_print("Done.\n");
-                    }
-                    break;
-                  }
-          case 6:
-                  {
-                    ensure_path_mounted("/system");
-                    ensure_path_mounted("/data");
-                    if (confirm_selection("Confirm backup SystemUI/framework-res","Yes - backup theme files")) {  
-                        ui_print("\nSearching for files...\n");
-                        if( show_file_exists("Original","/system/app/SystemUI.apk","SystemUI.apk:","found.", "not found.") &&
-                        show_file_exists("Original","/system/framework/framework-res.apk","framework-res.apk:","found.", "not found.")){ 
-                          show_file_exists("Original","/system/app/SystemUI.odex","SystemUI.odex:","found.", "not found.");                         
-                          ui_print("\nCleaning backup directory...\n");
-                          __system("rm -r /data/midnight/backups/theme/*");                                      
-                          ui_print("Backup to /data/midnight/backups/theme...\n");
-                          ui_print("Backup theme files...\n");
-                          __system("cp /system/app/SystemUI.apk /data/midnight/backups/theme");
-                          __system("cp /system/app/SystemUI.odex /data/midnight/backups/theme");
-                          __system("cp /system/framework/framework-res.apk /data/midnight/backups/theme");
-                          ui_print("Done.\n");
-                        }
-                    }
-                    break;
-                  }
-          case 7:
+          case 4:
           {
             if (confirm_selection("Confirm backup /data/app","Yes - backup APKs to SDCARD")) {  
                 apply_appbackup();                
@@ -854,10 +790,7 @@ void restore_menu(){
                             "Nandroid restore SYSTEM",
                             "Nandroid restore DATA",
                             "Nandroid restore selected file",
-                            "Restore custom bootanimations",
                             "Restore start/shutdown sounds",
-                            "Restore Midnight configfiles",
-                            "Restore SystemUI / framework-res",
                             "Restore /data/app from SDCARD",
                             NULL
     };
@@ -898,23 +831,6 @@ void restore_menu(){
             show_nandroid_advanced_restore_menu(0);
             break; 
           case 4:
-          {
-              {
-                ensure_path_mounted("/system");
-                ensure_path_mounted("/data");
-                if (confirm_selection("Confirm restoring custom bootanimations","Yes - restore bootanimations")) {  
-                  ui_print("\nRestoring bootanimations...\n");
-                  __system("cp /data/midnight/backups/bootanimation/local/bootanimation.zip /data/local");                
-                  __system("cp /data/midnight/backups/bootanimation/local/sanim.zip /data/local");                
-                  __system("cp /data/midnight/backups/bootanimation/local/bootanimation.bin /data/local");                
-                  __system("cp /data/midnight/backups/bootanimation/system/bootanimation.zip /system/media");                
-                  __system("cp /data/midnight/backups/bootanimation/system/sanim.zip /system/media");                
-                  ui_print("Done.\n");
-                }
-                break;
-              }
-          }
-          case 5:
                 {
                     ensure_path_mounted("/system");
                     ensure_path_mounted("/data");
@@ -928,48 +844,7 @@ void restore_menu(){
                     }
                     break;
                   }
-          case 6:
-                  {
-                    ensure_path_mounted("/system");
-                    ensure_path_mounted("/data");
-                    if (confirm_selection("Confirm restoring Midnight config files","Yes - restore Midnight config files")) {  
-                      ui_print("\nCleaning configfiles...\n");
-                      __system("rm /system/etc/midnight_*.conf");
-                      ui_print("Restoring configfiles...\n");
-                      __system("cp /data/midnight/backups/midnight-conf/midnight_*.conf /system/etc");
-                      ui_print("Done.\n");
-                    }
-                    break;
-                  }
-          case 7:
-                  {
-                    ensure_path_mounted("/system");
-                    ensure_path_mounted("/data");
-                    if (confirm_selection("Confirm restoring SystemUI/framework-res","Yes - restore theme files")) {  
-                        ui_print("\nSearching for theme files...\n");
-                        if( show_file_exists("Backup","/data/midnight/backups/theme/SystemUI.apk","SystemUI.apk:","found.", "not found.") &&
-                        show_file_exists("Backup","/data/midnight/backups/theme/framework-res.apk","framework-res.apk:","found.", "not found.")){  
-                        show_file_exists("Backup","/data/midnight/backups/theme/SystemUI.odex","SystemUI.odex:","found.", "not found.");    
-                        if((
-                            0 == file_exists("/data/midnight/backups/theme/SystemUI.odex") && 
-                            0 != file_exists("/system/app/SystemUI.odex")) ||
-                            (
-                            0 != file_exists("/data/midnight/backups/theme/SystemUI.odex") && 
-                            0 == file_exists("/system/app/SystemUI.odex"))                            
-                            ){
-                                ui_print("Odexed/deodexed mismatch, exiting...\n");
-                                return; 
-                            }
-                          ui_print("\nRestoring theme files...\n");
-                          __system("cp /data/midnight/backups/theme/SystemUI.apk /system/app");
-                          __system("cp /data/midnight/backups/theme/SystemUI.odex /system/app");
-                          __system("cp /data/midnight/backups/theme/framework-res.apk /system/framework");
-                          ui_print("Done.\n");
-                        }
-                    }
-                    break;
-                  }
-              case 8:
+              case 5:
               {
                 if (confirm_selection("Confirm installing apps from SDCARD","Yes - install apps to /data/app")) {  
                     apply_apprestore();                
@@ -1011,9 +886,7 @@ void cleanup_menu(){
                             "Wipe battery stats...",
                             "Factory reset...",
                             "Delete Nandroid backup",
-                            "Delete custom bootanimations",
                             "Delete start/shutdown sounds",
-                            "Delete Midnight configfiles",
                             "Delete bloatware (~15Mb)",
                             "Delete some Google apps (~0.8Mb)",
                             "Delete SamsungApps (~5Mb)",
@@ -1099,21 +972,6 @@ void cleanup_menu(){
             show_nandroid_restore_delete_menu(1);
             break;
           case 5:
-          {
-                   if (confirm_selection("Confirm deleting custom bootanimations","Yes - delete custom bootanimations")) {  
-                        ensure_path_mounted("/system");
-                        ensure_path_mounted("/data");
-                      ui_print("\nDeleting bootanimations...\n");
-                      __system("rm -f /data/local/bootanimation.zip");                
-                      __system("rm -f /data/local/sanim.zip");                
-                      __system("rm -f /data/local/bootanimation.bin");                
-                      __system("rm -f /system/media/bootanimation.zip");                
-                      __system("rm -f /system/media/sanim.zip");                
-                      ui_print("Done.\n");
-                    }
-                    break;
-          }
-          case 6:
                 {
                         ensure_path_mounted("/system");
                     if (confirm_selection("Confirm deleting start/shutdown sounds","Yes - delete start/shutdown sounds")) {  
@@ -1125,17 +983,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 7:
-                  {
-                   if (confirm_selection("Confirm deleting Midnight conf files","Yes - delete ALL Midnight config files")) {  
-                        ensure_path_mounted("/system");
-                      ui_print("\nDeleting /system/etc/midnight_*.conf...\n");
-                      __system("rm -rf /system/etc/midnight_*.conf");                
-                      ui_print("Done.\n");
-                    }
-                    break;
-                  }
-          case 8:
+          case 6:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1164,7 +1012,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 9:
+          case 7:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1182,7 +1030,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 10:
+          case 8:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1206,7 +1054,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 11:
+          case 9:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1222,7 +1070,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 12:
+          case 10:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1239,7 +1087,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 13:
+          case 11:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1263,7 +1111,7 @@ void cleanup_menu(){
                     break;
                   }
 
-          case 14:
+          case 12:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1437,14 +1285,17 @@ prompt_and_wait() {
             case ITEM_ROOT:
                show_root_menu();
                 break;
-            case ITEM_MIDNIGHT:
-                show_midnight_menu();
-                break;
-            case ITEM_UV:
-                show_cpu_uv_menu();
-                break;
             case ITEM_ZIPALIGN:
-                show_zipalign_menu();
+               show_zipalign_menu();
+                break;
+            case ITEM_APP:
+                if(0 == __system("touch /cache/midnight_block")){
+                    ui_print("\nBlocker file created, MidnightControl\n");
+                    ui_print("settings will not be applied at next boot.\n");
+                    }else{
+                    ui_print("\nFailed to create /system/etc/midnight_block,\n");
+                    ui_print("sorry.\n");
+                    }
                 break;
             /*
              * MIDNIGHT: Advanced menu temporarily disabled

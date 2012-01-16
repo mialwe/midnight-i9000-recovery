@@ -31,19 +31,18 @@ char* MENU_HEADERS[] = { NULL };
  * - find place for advanced options
  * - find place for update-zip install
  */
-char* MENU_ITEMS[] = { "Reboot",                    // 0
-                       "Reboot to recovery",        // 1
-                       "Reboot to download",        // 2
-                       "Shutdown",                  // 3                       
-                       "Install zip from sdcard...",// 4
-                       "Partition menu...",         // 5
-                       "BACKUP menu...",// 6
-                       "CLEANUP / wipe menu...",  // 7
-                       "RESTORE menu ...",    // 8
-                       "Root / unRoot / Busybox menu...", // 9
-                       "Midnight options menu...",   // 10
-                       "CPU undervolting menu...",   // 11
-                       "Zipalign tool menu...",   // 12
+char* MENU_ITEMS[] = { "Reboot",                            // 0
+                       "Reboot to recovery",                // 1
+                       "Reboot to download",                // 2
+                       "Shutdown",                          // 3                       
+                       "Install zip from sdcard...",        // 4
+                       "Partition menu...",                 // 5
+                       "BACKUP menu...",                    // 6
+                       "CLEANUP / wipe menu...",            // 7
+                       "RESTORE menu ...",                  // 8
+                       "Root / unRoot / Busybox menu...",   // 9
+                       "Zipalign",                          // 10
+                       "Deactivate app settings ONCE",      // 11
                        NULL };
 
 int device_recovery_start() {
