@@ -895,6 +895,7 @@ void cleanup_menu(){
                             "Delete Facebook/Twitter sync (~0.7Mb)",
                             "Delete some fonts (~3Mb)",
                             "Delete Samsung Widgets (~3.7Mb)",
+                            "Delete all from last 8 options (~65Mb)",
                             NULL
     };
     
@@ -903,7 +904,7 @@ void cleanup_menu(){
       
     ui_print("\nBloatware-cleanup info\n");
     ui_print("------------------\n");
-    ui_print("THE LAST 8 OPTIONS REMOVE BLOATWARE\n");
+    ui_print("THE LAST 9 OPTIONS REMOVE BLOATWARE\n");
     ui_print("AND POTENTIALLY UNNEDED SOFTWARE!\n");
     ui_print("The options will display a list of\n");
     ui_print("all packages which will be deleted.\n");
@@ -1143,7 +1144,59 @@ void cleanup_menu(){
                     }
                     break;
                   }
-        }
+          case 14:
+                  {
+                        ensure_path_mounted("/system");
+                        ensure_path_mounted("/data");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("Every package listed in options starting\n");
+                    ui_print("from 'delete bloatware' down to\n");
+                    ui_print("'delete Samsung widgets'.\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting /system Samsung Widgets","Yes - I know what I'm doing")) {  
+                        rm_bloat("BuddiesNow");
+                        rm_bloat("Days");
+                        rm_bloat("Layar-samsung");
+                        rm_bloat("Memo");
+                        rm_bloat("MiniDiary");
+                        rm_bloat("PressReader");
+                        rm_bloat("WriteandGo");
+                        rm_bloat("aldiko-standard-1.2.6.1-samsung-s1");
+                        rm_bloat("thinkdroid");
+                        rm_bloat("Protips");
+                        rm_bloat("YouTube");
+                        rm_bloat("HRS-Android");
+                        rm_bloat("GoogleFeedback");
+                        rm_bloat("GooglePartnerSetup");
+                        rm_bloat("GoogleQuickSearchBox");
+                        rm_bloat("Maps");
+                        rm_bloat("Email");
+                        rm_bloat("SamsungApps");
+                        rm_bloat("SamsungAppsUNAService");
+                        rm_bloat("SamsungAppsUNA3"); 
+                        rm_bloat("signin"); 
+                        rm_bloat("wssyncmlnps"); 
+                        rm_bloat("WlanTest"); 
+                        rm_bloat("syncmldm"); 
+                        rm_bloat("syncmlds");
+                        rm_bloat("SnsAccount");
+                        rm_bloat("SnsProvider");
+                        rm_bloat("ChocoEUKor");
+                        rm_bloat("CoolEUKor");
+                        rm_bloat("RoseEUKor");                                                                        
+                        __system("rm /data/app/com.google.android.apps.maps-1.apk");                                                
+                        rm_bloat("SamsungWidget_CalendarClock");
+                        rm_bloat("SamsungWidget_FeedAndUpdate");
+                        rm_bloat("SamsungWidget_ProgramMonitor");
+                        rm_bloat("SamsungWidget_StockClock");
+                        rm_bloat("DualClock");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+            }
     }
 }
 
