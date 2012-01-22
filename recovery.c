@@ -889,11 +889,12 @@ void cleanup_menu(){
                             "Delete start/shutdown sounds",
                             "Delete bloatware (~15Mb)",
                             "Delete some Google apps (~0.8Mb)",
+                            "Delete Google Maps (~7.8Mb)",
+                            "Delete Email.apk (~4Mb)",
                             "Delete SamsungApps (~5Mb)",
                             "Delete Facebook/Twitter sync (~0.7Mb)",
                             "Delete some fonts (~3Mb)",
                             "Delete Samsung Widgets (~3.7Mb)",
-                            "Delete a lot of bloat/software (~52Mb)",
                             NULL
     };
     
@@ -902,13 +903,13 @@ void cleanup_menu(){
       
     ui_print("\nBloatware-cleanup info\n");
     ui_print("------------------\n");
-    ui_print("THE LAST 7 OPTIONS REMOVE BLOATWARE\n");
+    ui_print("THE LAST 8 OPTIONS REMOVE BLOATWARE\n");
     ui_print("AND POTENTIALLY UNNEDED SOFTWARE!\n");
     ui_print("The options will display a list of\n");
     ui_print("all packages which will be deleted.\n");
     ui_print("Be sure to read this list before\n");
     ui_print("you confirm.\n");
-    ui_print("A Nandroid-SYSTEM backup might be useful\n");
+    ui_print("A Nandroid backup might be useful\n");
     ui_print("as there will be no apk/odex backup.\n");
     ui_print("------------------\n");
     
@@ -1033,6 +1034,38 @@ void cleanup_menu(){
           case 8:
                   {
                         ensure_path_mounted("/system");
+                        ensure_path_mounted("/data");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("Google Maps on /system/app and /data/app.\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting GoogleMaps","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting Google Maps...\n");
+                        rm_bloat("Maps");
+                        __system("rm /data/app/com.google.android.apps.maps-1.apk");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 9:
+                  {
+                        ensure_path_mounted("/system");
+                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
+                    ui_print("Email.apk (NOT GMail)\n");
+                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
+
+                   if (confirm_selection("Confirm deleting Email.apk","Yes - I know what I'm doing")) {  
+                        ui_print("\nDeleting Email.apk...\n");
+                        rm_bloat("Email");
+                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
+                        ui_print("Done.\n");
+                    }
+                    break;
+                  }
+          case 10:
+                  {
+                        ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
                     ui_print("SamsungApps, SamsungAppsUNAService\n");
                     ui_print("SamsungAppsUNA3, signin, wssyncmlnps,\n");
@@ -1054,7 +1087,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 9:
+          case 11:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1070,7 +1103,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 10:
+          case 12:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1087,7 +1120,7 @@ void cleanup_menu(){
                     }
                     break;
                   }
-          case 11:
+          case 13:
                   {
                         ensure_path_mounted("/system");
                     ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
@@ -1105,87 +1138,6 @@ void cleanup_menu(){
                         rm_bloat("SamsungWidget_ProgramMonitor");
                         rm_bloat("SamsungWidget_StockClock");
                         rm_bloat("DualClock");
-                        ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
-                        ui_print("Done.\n");
-                    }
-                    break;
-                  }
-
-          case 12:
-                  {
-                        ensure_path_mounted("/system");
-                    ui_print("\nREMOVING APK/ODEX WITHOUT BACKUP:\n");
-
-                    ui_print("aldiko-standard-1.2.6.1-samsung-s1,");
-                    ui_print("AngryGPS, BuddiesNow, ChocoEUKor,");
-                    ui_print("CoolEUKor, Days, DualClock, Gallery3D,");
-                    ui_print("GoogleBackupTransport, GoogleFeedback,");
-                    ui_print("GooglePartnerSetup, GoogleQuickSearchBox,");
-                    ui_print("HTMLViewer, InfoAlarm, LiveWallpapers,");
-                    ui_print("LiveWallpapersPicker, Memo, MiniDiary,");
-                    ui_print("MobileTrackerEngineTwo, MobileTrackerUI,");
-                    ui_print("MtpApplication, MyFiles, NetworkLocation,");
-                    ui_print("PicoTts, PressReader, Protips,");
-                    ui_print("RoseEUKor, SamsungApps,");
-                    ui_print("SamsungWidget_CalendarClock,");
-                    ui_print("SamsungWidget_FeedAndUpdate,");
-                    ui_print("SamsungWidget_ProgramMonitor,");
-                    ui_print("SamsungWidget_StockClock,");
-                    ui_print("SnsAccount, SnsProvider, Street,");
-                    ui_print("Swype, thinkdroid, TwWallpaperChooser,");
-                    ui_print("VideoPlayer, VisualizationWallpapers,");
-                    ui_print("VoiceDialer, VoiceRecorder,");
-                    ui_print("VoiceSearch, WriteandGo,MagicSmokeWallpapers");
- 
-                    ui_print("\nFree space on /system before removing: %d Mb\n",get_partition_free("/system"));
-
-                   if (confirm_selection("Confirm deleting /system MIALWE preset","Yes - I know what I'm doing")) {  
-                        ui_print("\nDeleting /system MIALWE preset...\n");
-                        rm_bloat("aldiko-standard-1.2.6.1-samsung-s1");
-                        rm_bloat("AngryGPS");
-                        rm_bloat("BuddiesNow");
-                        rm_bloat("ChocoEUKor");
-                        rm_bloat("CoolEUKor");
-                        rm_bloat("Days");
-                        rm_bloat("DualClock");
-                        rm_bloat("Gallery3D");
-                        rm_bloat("GoogleBackupTransport");
-                        rm_bloat("GoogleFeedback");
-                        rm_bloat("GooglePartnerSetup");
-                        rm_bloat("GoogleQuickSearchBox");
-                        rm_bloat("HTMLViewer");
-                        rm_bloat("InfoAlarm");
-                        rm_bloat("LiveWallpapers");
-                        rm_bloat("LiveWallpapersPicker");
-                        rm_bloat("Memo");
-                        rm_bloat("MiniDiary");
-                        rm_bloat("MobileTrackerEngineTwo");
-                        rm_bloat("MobileTrackerUI");
-                        rm_bloat("MtpApplication");
-                        rm_bloat("MyFiles");
-                        rm_bloat("NetworkLocation");
-                        rm_bloat("PicoTts");
-                        rm_bloat("PressReader");
-                        rm_bloat("Protips");
-                        rm_bloat("RoseEUKor");
-                        rm_bloat("SamsungApps");
-                        rm_bloat("SamsungWidget_CalendarClock");
-                        rm_bloat("SamsungWidget_FeedAndUpdate");
-                        rm_bloat("SamsungWidget_ProgramMonitor");
-                        rm_bloat("SamsungWidget_StockClock");
-                        rm_bloat("SnsAccount");
-                        rm_bloat("SnsProvider");
-                        rm_bloat("Street");
-                        rm_bloat("Swype");
-                        rm_bloat("thinkdroid");
-                        rm_bloat("TwWallpaperChooser");
-                        rm_bloat("VideoPlayer");
-                        rm_bloat("VisualizationWallpapers");
-                        rm_bloat("VoiceDialer");
-                        rm_bloat("VoiceRecorder");
-                        rm_bloat("VoiceSearch");
-                        rm_bloat("WriteandGo");
-                        rm_bloat("MagicSmokeWallpapers");
                         ui_print("\nFree @ /system after removing: %d Mb\n",get_partition_free("/system"));
                         ui_print("Done.\n");
                     }
