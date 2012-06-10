@@ -77,8 +77,7 @@ int device_wipe_data();
 #define ITEM_RESTORE         8
 #define ITEM_ROOT            9
 #define ITEM_ZIPALIGN       10
-#define ITEM_UV             11
-#define ITEM_MISC           12
+#define ITEM_APP            11
 
 // Header text to display above the main menu.
 extern char* MENU_HEADERS[];

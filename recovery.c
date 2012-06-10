@@ -980,7 +980,6 @@ void cleanup_menu(){
                       ui_print("\nDeleting startup/shutdown sounds...\n");
                       __system("rm -f /system/etc/PowerOn.snd");                
                       __system("rm -f /system/etc/PowerOn.wav");                
-                      __system("rm -f /system/etc/PowerOn.ogg");                
                       __system("rm -f /system/media/audio/ui/shutdown.ogg");                
                       ui_print("Done.\n");
                     }
@@ -1294,11 +1293,14 @@ prompt_and_wait() {
             case ITEM_ZIPALIGN:
                show_zipalign_menu();
                 break;
-            case ITEM_UV:
-               show_uv_menu();
-                break;
-            case ITEM_MISC:
-               show_misc_menu();
+            case ITEM_APP:
+                if(0 == __system("touch /cache/midnight_block")){
+                    ui_print("\nBlocker file created, MidnightControl\n");
+                    ui_print("settings will not be applied at next boot.\n");
+                    }else{
+                    ui_print("\nFailed to create /system/etc/midnight_block,\n");
+                    ui_print("sorry.\n");
+                    }
                 break;
             /*
              * MIDNIGHT: Advanced menu temporarily disabled

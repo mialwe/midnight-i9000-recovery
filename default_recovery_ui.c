@@ -42,8 +42,7 @@ char* MENU_ITEMS[] = { "Reboot",                            // 0
                        "RESTORE menu ...",                  // 8
                        "Root / unRoot / Busybox menu...",   // 9
                        "Zipalign",                          // 10
-                       "Undervolting",                      // 11
-                       "Options",                           // 11
+                       "Deactivate app settings ONCE",      // 11
                        NULL };
 
 int device_recovery_start() {

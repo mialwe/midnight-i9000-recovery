@@ -532,15 +532,6 @@ void custom_menu(
         if (chosen_item == GO_BACK)
             break;
         tweaks[chosen_item] = tweaks[chosen_item]?0:1;  // toggle selected option
-
-        if (memcmp("LOGGER",options[chosen_item],strlen(options[chosen_item]))==0){
-            ensure_path_mounted("/data");
-            if(tweaks[chosen_item]==0)
-                __system("rm /data/local/logger.ko");        
-            else
-                __system("cp /lib/modules/logger.ko /data/local/logger.ko");        
-        }
-
         f = fopen(conffile,"w+");                       // write options to config file
         if (f) {
           for (i=0; i<numtweaks; i++) {
@@ -901,61 +892,16 @@ void show_zipalign_menu() {
 }
 
 void show_misc_menu() {
-    const char* h[]={
-        "misc. options",
-        "",
-        "",
-        NULL};
-    const char* m[]={
-        "init.d/userinit.d            [default: off]",
-        "1.128Ghz overclocking       [default: 1Ghz]",
-        "NOOP IO scheduler             [default:SIO]",
-        "Ondemand CPU governor     [default: Smoove]",
-        "512Kb sdcard readahead       [default: 256]",
-        "CPU limit 800Mhz",
-        "BTHID module",
-        "TUN module",
-        "Logcat module",
-        "TouchLED timeout 250ms",
-        "enhanced touchscreen sensitivity",
-        NULL};
-    int num=11;
-    const char* cnfv[]={"INITD","OC1128","NOOP","ONDEMAND","512","MAX800","BTHID","TUN","LOGGER","LEDTIMEOUT","TOUCHSCREEN"};
-    const char* cnff="/data/local/midnight_options.conf";
-    custom_menu(h,m,num,cnfv,cnff,0);
-}
-
-void show_uv_menu() {
-    const char* h[]={
-        "undervolting profiles",
-        "",
-        "",
-        NULL};
-    const char* m[]={
-        " 0   0   0   0   0 mV [default]",
-        " 0   0  25  50  75 mV",
-        " 0   0  25  75 100 mV",
-        " 0   0  50  75 125 mV",
-        NULL};
-    int num=4;
-    const char* cnfv[]={"DEFAULT","UV1","UV2","UV3"};
-    const char* cnff="/data/local/midnight_uv.conf";
-    custom_menu(h,m,num,cnfv,cnff,1);
-}
-
-void show_logcat_menu() {
-    static char* headers[] = {  "Logcat module",
+    static char* headers[] = {  "Misc. options",
                                 NULL
     };
 
-    static char* list[] = { "enable Logcat module",
-                            "disable Logcat module",
+    static char* list[] = { "Fix permissions",
+                            "Zipalign",
+                            "Block kernel-app values next boot",
                             NULL
     };
-    if (0 == file_exists("/data/local/logger.ko"))
-        ui_print("\nLogger module is currently installed\n");
-    else
-        ui_print("\nLogger module is currently not installed\n");
+
     for (;;)
     {
         int chosen_item = get_menu_selection(headers, list, 0, 0);
@@ -964,62 +910,26 @@ void show_logcat_menu() {
         switch (chosen_item)
         {
             case 0:
-                if(0 == __system("cp /system/lib/modules/logger.ko /data/local/logger.ko")){
-                    ui_print("\nModule installed, please reboot.\n");
+              if (confirm_selection("Confirm zipaligning in /data/app","Yes - zipalign in /data/app")) {
+                ui_print("\nFixing permissions...\n");
+                ensure_path_mounted("/system");
+                ensure_path_mounted("/data");
+                __system("fix_permissions");
+                ui_print("Done!\n");
+                }
+              break;
+            case 1:
+              show_zipalign_menu();
+              break;
+            case 2:
+                if(0 != __system("/sbin/busybox touch /data/local/block-midnight-control")){
+                    ui_print("\nFailed to create blocker file.\n");
                 }else{
-                    ui_print("\nInstalling module failed, sorry.\n");
-                }               
-                break;
-            case 1:                
-                if(0 == __system("rm /data/local/logger.ko")){
-                    ui_print("\nModule removed, please reboot.\n");
-                }else{
-                    ui_print("\nRemoving module failed, sorry.\n");
-                }               
-                break;
+                    ui_print("\nCreated blocker file, Midnight will\n");                    
+                    ui_print("ignore app settings on next boot.\n");
+                }
+              }
+              break;
         }
     }
-}
-
-//void show_misc_menu() {
-    //static char* headers[] = {  "Misc. options",
-                                //NULL
-    //};
-
-    //static char* list[] = { "Fix permissions",
-                            //"Zipalign",
-                            //"Block kernel-app values next boot",
-                            //NULL
-    //};
-
-    //for (;;)
-    //{
-        //int chosen_item = get_menu_selection(headers, list, 0, 0);
-        //if (chosen_item == GO_BACK)
-            //break;
-        //switch (chosen_item)
-        //{
-            //case 0:
-              //if (confirm_selection("Confirm zipaligning in /data/app","Yes - zipalign in /data/app")) {
-                //ui_print("\nFixing permissions...\n");
-                //ensure_path_mounted("/system");
-                //ensure_path_mounted("/data");
-                //__system("fix_permissions");
-                //ui_print("Done!\n");
-                //}
-              //break;
-            //case 1:
-              //show_zipalign_menu();
-              //break;
-            //case 2:
-                //if(0 != __system("/sbin/busybox touch /data/local/block-midnight-control")){
-                    //ui_print("\nFailed to create blocker file.\n");
-                //}else{
-                    //ui_print("\nCreated blocker file, Midnight will\n");                    
-                    //ui_print("ignore app settings on next boot.\n");
-                //}
-              //}
-              //break;
-        //}
-    //}
 
