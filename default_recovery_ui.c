@@ -43,7 +43,9 @@ char* MENU_ITEMS[] = { "Reboot",                            // 0
                        "Root / unRoot / Busybox menu...",   // 9
                        "Zipalign",                          // 10
                        "Undervolting",                      // 11
-                       "Options",                           // 11
+                       "Gamma",                             // 12
+                       "RGB",                               // 13
+                       "Options",                           // 14
                        NULL };
 
 int device_recovery_start() {

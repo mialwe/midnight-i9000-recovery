@@ -943,83 +943,38 @@ void show_uv_menu() {
     custom_menu(h,m,num,cnfv,cnff,1);
 }
 
-void show_logcat_menu() {
-    static char* headers[] = {  "Logcat module",
-                                NULL
-    };
-
-    static char* list[] = { "enable Logcat module",
-                            "disable Logcat module",
-                            NULL
-    };
-    if (0 == file_exists("/data/local/logger.ko"))
-        ui_print("\nLogger module is currently installed\n");
-    else
-        ui_print("\nLogger module is currently not installed\n");
-    for (;;)
-    {
-        int chosen_item = get_menu_selection(headers, list, 0, 0);
-        if (chosen_item == GO_BACK)
-            break;
-        switch (chosen_item)
-        {
-            case 0:
-                if(0 == __system("cp /system/lib/modules/logger.ko /data/local/logger.ko")){
-                    ui_print("\nModule installed, please reboot.\n");
-                }else{
-                    ui_print("\nInstalling module failed, sorry.\n");
-                }               
-                break;
-            case 1:                
-                if(0 == __system("rm /data/local/logger.ko")){
-                    ui_print("\nModule removed, please reboot.\n");
-                }else{
-                    ui_print("\nRemoving module failed, sorry.\n");
-                }               
-                break;
-        }
-    }
+void show_gamma_menu() {
+    const char* h[]={
+        "screen gamma",
+        "",
+        "",
+        NULL};
+    const char* m[]={
+        "unchanged",
+        "- 7 [default]",
+        "-11",
+        NULL};
+    int num=3;
+    const char* cnfv[]={"GAM1","GAM2","GAM3"};
+    const char* cnff="/data/local/midnight_gamma.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
 }
 
-//void show_misc_menu() {
-    //static char* headers[] = {  "Misc. options",
-                                //NULL
-    //};
+void show_rgb_menu() {
+    const char* h[]={
+        "screen RGB profiles",
+        "",
+        "",
+        NULL};
+    const char* m[]={
+        "unchanged [default]",
+        "red- , green--",
+        "red--, green-",
+        NULL};
+    int num=3;
+    const char* cnfv[]={"RGB1","RGB2","RGB3"};
+    const char* cnff="/data/local/midnight_rgb.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
 
-    //static char* list[] = { "Fix permissions",
-                            //"Zipalign",
-                            //"Block kernel-app values next boot",
-                            //NULL
-    //};
-
-    //for (;;)
-    //{
-        //int chosen_item = get_menu_selection(headers, list, 0, 0);
-        //if (chosen_item == GO_BACK)
-            //break;
-        //switch (chosen_item)
-        //{
-            //case 0:
-              //if (confirm_selection("Confirm zipaligning in /data/app","Yes - zipalign in /data/app")) {
-                //ui_print("\nFixing permissions...\n");
-                //ensure_path_mounted("/system");
-                //ensure_path_mounted("/data");
-                //__system("fix_permissions");
-                //ui_print("Done!\n");
-                //}
-              //break;
-            //case 1:
-              //show_zipalign_menu();
-              //break;
-            //case 2:
-                //if(0 != __system("/sbin/busybox touch /data/local/block-midnight-control")){
-                    //ui_print("\nFailed to create blocker file.\n");
-                //}else{
-                    //ui_print("\nCreated blocker file, Midnight will\n");                    
-                    //ui_print("ignore app settings on next boot.\n");
-                //}
-              //}
-              //break;
-        //}
-    //}
 
