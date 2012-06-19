@@ -907,20 +907,17 @@ void show_misc_menu() {
         "",
         NULL};
     const char* m[]={
-        "init.d/userinit.d            [default: off]",
-        "1.128Ghz overclocking       [default: 1Ghz]",
-        "NOOP IO scheduler             [default:SIO]",
-        "Ondemand CPU governor     [default: Smoove]",
-        "512Kb sdcard readahead       [default: 256]",
-        "CPU limit 800Mhz",
+        "init.d/userinit.d         [default:    off]",
+        "NOOP IO scheduler         [default:    SIO]",
+        "512Kb sdcard readahead    [default:  256Kb]",
+        "TouchLED timeout 250ms    [default: 1600ms]",
         "BTHID module",
         "TUN module",
         "Logcat module",
-        "TouchLED timeout 250ms",
         "enhanced touchscreen sensitivity",
         NULL};
     int num=11;
-    const char* cnfv[]={"INITD","OC1128","NOOP","ONDEMAND","512","MAX800","BTHID","TUN","LOGGER","LEDTIMEOUT","TOUCHSCREEN"};
+    const char* cnfv[]={"INITD","NOOP","512","LEDTIMEOUT","BTHID","TUN","LOGGER","TOUCHSCREEN"};
     const char* cnff="/data/local/midnight_options.conf";
     custom_menu(h,m,num,cnfv,cnff,0);
 }
@@ -950,7 +947,7 @@ void show_gamma_menu() {
         "",
         NULL};
     const char* m[]={
-        "unchanged",
+        "stock/unchanged",
         "- 7 [default]",
         "-11",
         NULL};
@@ -977,4 +974,92 @@ void show_rgb_menu() {
     custom_menu(h,m,num,cnfv,cnff,1);
 }
 
+void show_governor_menu() {
+    const char* h[]={
+        "CPU governor",
+        "",
+        "",
+        NULL};
+    const char* m[]={
+        "Smoove [default]",
+        "SmartassV2",
+        "Ondemand",
+        "Conservative",
+        NULL};
+    int num=4;
+    const char* cnfv[]={"smoove","smartassV2","ondemand","conservative"};
+    const char* cnff="/data/local/midnight_gov.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void show_freq_menu() {
+    const char* h[]={
+        "CPU max. frequency",
+        "",
+        "",
+        NULL};
+    const char* m[]={
+        " 800Mhz",
+        "1000Mhz",
+        "1128Mhz",
+        NULL};
+    int num=3;
+    const char* cnfv[]={"800","1000","1128"};
+    const char* cnff="/data/local/midnight_freq.conf";
+    custom_menu(h,m,num,cnfv,cnff,1);
+}
+
+void mngb_menu() {
+    static char* headers[] = {  "MNGB kernel settings",
+                                "",
+                                "",
+                                NULL
+    };
+
+    static char* list[] = { "Root...",
+                            "Zipalign...",
+                            "Screen gamma profile",
+                            "Screen RGB profile",
+                            "CPU undervolting...",
+                            "CPU max. frequency...",
+                            "CPU governor...",
+                            "Options...",
+                            NULL
+    };
+
+    for (;;)
+    {
+        int chosen_item = get_menu_selection(headers, list, 0, 0);
+        if (chosen_item == GO_BACK)
+            break;
+        switch (chosen_item)
+        {
+            case 0:
+                show_root_menu();
+              break;
+            case 1:
+                show_zipalign_menu();
+              break;
+            case 2:
+                show_gamma_menu();
+              break;
+            case 3:
+                show_rgb_menu();
+              break;
+            case 4:
+                show_uv_menu();
+              break;
+            case 5:
+                show_freq_menu();
+              break;
+            case 6:
+                show_governor_menu();
+              break;
+            case 7:
+                show_misc_menu();
+              break;
+        }
+    }
+
+}
 

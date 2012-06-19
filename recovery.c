@@ -1288,23 +1288,8 @@ prompt_and_wait() {
             case ITEM_RESTORE:
                 restore_menu();
                 break;                
-            case ITEM_ROOT:
-               show_root_menu();
-                break;
-            case ITEM_ZIPALIGN:
-               show_zipalign_menu();
-                break;
-            case ITEM_UV:
-               show_uv_menu();
-                break;
-            case ITEM_GAMMA:
-               show_gamma_menu();
-                break;
-            case ITEM_RGB:
-               show_rgb_menu();
-                break;
-            case ITEM_MISC:
-               show_misc_menu();
+            case ITEM_MNGB:
+               mngb_menu();
                 break;
             /*
              * MIDNIGHT: Advanced menu temporarily disabled
